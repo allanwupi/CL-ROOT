@@ -66,6 +66,17 @@ TEA: Item = Item(itemtype=ItemType.TEA, points=2, suit=Suit.MOUSE)
 COINS: Item = Item(itemtype=ItemType.COINS, points=3, suit=Suit.RABBIT)
 
 
+ITEM_SUPPLY: dict[Item, int] = {
+    BAG: 2,
+    BOOT: 2,
+    CROSSBOW: 1,
+    HAMMER: 1,
+    SWORD: 2,
+    TEA: 2,
+    COINS: 2
+}
+
+
 @dataclass(frozen=True)
 class Ruin(Piece):
     name: str

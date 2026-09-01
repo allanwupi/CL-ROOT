@@ -19,22 +19,18 @@ class MechanicalMarquise(Faction):
         }
         super().__init__(name, supply, color, handsize)
 
-    @abstractmethod
     def setup(self, game: Game, homelands: list[Clearing] = list()):
         """Set up faction pieces following advanced setup rules."""
         pass
     
-    @abstractmethod
     def birdsong(self):
         """Execute the birdsong phase."""
         pass
     
-    @abstractmethod
     def daylight(self):
         """Execute the daylight phase."""
         pass
     
-    @abstractmethod
     def evening(self):
         """Execute the evening phase."""
         pass

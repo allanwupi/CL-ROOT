@@ -1,14 +1,41 @@
 from board.clearing import Clearing
 from board.suit import Suit
+from components.items import Ruin, BAG, BOOT, HAMMER, SWORD
 from ui.renderer import Renderer
 
-burrow = Clearing(0, 'Burrow', Suit.NONE, [5,9], [None])
-hill = Clearing(1, 'Hill', Suit.FOX, [5,9], [None])
-quarry = Clearing(2, 'Quarry', Suit.MOUSE, [5,6,10], [None, None])
+R1: Ruin = Ruin(name="R1", item=BAG)
+R2: Ruin = Ruin(name="R1", item=BOOT)
+R3: Ruin = Ruin(name="R1", item=HAMMER)
+R4: Ruin = Ruin(name="R1", item=SWORD)
+
+burrow = Clearing(0, 'Burrow', Suit.NONE, [], [None])
+hill = Clearing(1, 'Hill', Suit.FOX, [5, 9, 10], [None])
+quarry = Clearing(2, 'Quarry', Suit.MOUSE, [5, 6, 10], [None, None])
+weald = Clearing(3, 'Weald', Suit.RABBIT, [6, 7, 11], [None])
+haven = Clearing(4, 'Haven', Suit.RABBIT, [8, 9, 12], [None, None, None])
+creek = Clearing(5, 'Creek', Suit.RABBIT, [1, 2], [None, None])
+mountain = Clearing(6, 'Mountain', Suit.FOX, [2, 3, 11], [R1, None])
+pond = Clearing(7, 'Pond', Suit.MOUSE, [3, 8, 12], [None, None])
+meadow = Clearing(8, 'Meadow', Suit.FOX, [4, 7], [None, None])
+dune = Clearing(9, 'Dune', Suit.MOUSE, [1, 4, 12], [None, None])
+beach = Clearing(10, 'Beach', Suit.RABBIT, [1, 2, 12], [None, None, R2])
+waterfall = Clearing(11, 'Waterfall', Suit.MOUSE, [3, 6, 12], [None, None, R3])
+glade = Clearing(12, 'Glade', Suit.FOX, [4, 7, 9, 10, 11], [R4, None])
 
 AUTUMN_MAP = [
     burrow,
     hill,
+    quarry,
+    weald,
+    haven,
+    creek,
+    mountain,
+    pond,
+    meadow,
+    dune,
+    beach,
+    waterfall,
+    glade
 ]
 
 # The map is rendered in two steps

@@ -4,7 +4,7 @@ from board.board import Board
 from board.clearing import Clearing
 from factions.faction import Faction, TurnPhase
 from components.pieces import Piece
-from components.items import Item
+from components.items import Item, ITEM_SUPPLY
 from components.deck import Deck
 
 
@@ -13,7 +13,7 @@ class GameOver(Exception):
 
 
 class Game:
-    def __init__(self, board: Board, deck: Deck, items: dict[Item, int]):
+    def __init__(self, board: Board, deck: Deck, items: dict[Item, int] = ITEM_SUPPLY):
         self.board = board
         self.deck = deck
         self.board.environment.items = items # Item supply
