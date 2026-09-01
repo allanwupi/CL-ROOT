@@ -2,7 +2,7 @@ from game.game import Game, GameOver
 from board.board import Board
 from board.map_data import AUTUMN_MAP, AUTUMN_MAP_ASCII
 from components.deck import Deck
-from components.card_data import BASE_DECK
+from components.data import BASE_DECK
 from ui.styles import Color
 from ui.cli import CLI
 from factions.clockwork.marquise import MechanicalMarquise
@@ -16,7 +16,7 @@ bot2 = MechanicalMarquise(name='Esiuqram', color=Color.PINK)
 
 cli: CLI = CLI(game)
 
-def main_loop():
+def main():
     print()
     game.setup(bot1)
     game.setup(bot2)
@@ -28,4 +28,8 @@ def main_loop():
         return()
     except GameOver as e:
         print(e)
-        print(game)  # Show final board state
+        cli.render()  # Show final board state
+
+
+if __name__ == "__main__":
+    main()

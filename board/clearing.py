@@ -1,10 +1,16 @@
 # from board.path import Path
-from board.suit import Suit
-from board.location import Location
-from factions.faction import Faction
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from board.location import Location
+from board.suit import Suit
 from components.pieces import Piece
 from ui.styles import Color
+
+if TYPE_CHECKING:
+    from factions.faction import Faction
 
 
 @dataclass(frozen=True)

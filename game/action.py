@@ -1,16 +1,20 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from game.game import Game
-from board.suit import Suit
+from typing import TYPE_CHECKING
+
 from board.clearing import Clearing
-from factions.faction import Faction
-from components.pieces import Piece
+from board.suit import Suit
 from components.card import Card
-from rules.rule_engine import RULE
-from ui.renderer import Renderer
+from components.pieces import Piece
+from factions.faction import Faction
+
+if TYPE_CHECKING:
+    from game.game import Game
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Action(ABC):
     game: Game
     owner: Faction
@@ -30,7 +34,7 @@ class Action(ABC):
         pass
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Place(Action):
     owner: Faction
     clearing: int
@@ -42,6 +46,9 @@ class Place(Action):
     forced: bool = False
     
     def execute(self, game: Game, suppress: bool = False) -> None:
+        from rules.rule_engine import RULE
+        from ui.renderer import Renderer
+
         RULE.illegalplace(self)
         piece_owner: Faction = self.piece.owner
         piece_owner.supply[self.piece] -= self.numpieces
@@ -49,7 +56,7 @@ class Place(Action):
         if not suppress: print(Renderer.render_action(self))
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Remove(Action):
     owner: Faction # Removing your own faction pieces doesn't score VP (exception: Keepers in Iron)
     clearing: int
@@ -58,6 +65,9 @@ class Remove(Action):
     forced: bool = False
     
     def execute(self, game: Game, suppress: bool = False) -> None:
+        from rules.rule_engine import RULE
+        from ui.renderer import Renderer
+
         RULE.illegalremove(self)
         piece_owner: Faction = self.piece.owner
         self._clearing[piece_owner][self.piece] -= self.numpieces
@@ -65,7 +75,7 @@ class Remove(Action):
         if not suppress: print(Renderer.render_action(self))
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Move(Action):
     owner: Faction
     clearing: int # The clearing of the move is the starting point
@@ -86,13 +96,16 @@ class Move(Action):
     # A move is a compound action
     # Pieces are (1) removed from clearing; (2) placed in destination
     def execute(self, game: Game, suppress: bool = False) -> None:
+        from rules.rule_engine import RULE
+        from ui.renderer import Renderer
+
         RULE.illegalmove(self)
         self._clearing[self.owner][self.piece] -= self.numpieces
         self._destination[self.owner][self.piece] += self.numpieces
         if not suppress: print(Renderer.render_action(self))
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Build(Place):
     owner: Faction
     piece: Piece
@@ -104,13 +117,16 @@ class Build(Place):
     
     # Build action is a specific Place action requiring rule and a free building slot
     def execute(self, game: Game, suppress: bool = False) -> None:
+        from rules.rule_engine import RULE
+        from ui.renderer import Renderer
+
         RULE.illegalplace(self)
         # TODO
         pass
         if not suppress: print(Renderer.render_action(self))
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Recruit(Place):
     owner: Faction
     clearing: int
@@ -123,13 +139,16 @@ class Recruit(Place):
     
     # Recruit action is a Place action at a specified recruiting piece
     def execute(self, game: Game, suppress: bool = False) -> None:
+        from rules.rule_engine import RULE
+        from ui.renderer import Renderer
+
         RULE.illegalrecruit(self)
         # TODO
         pass
         if not suppress: print(Renderer.render_action(self))
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Battle(Action):
     owner: Faction # Owner is the attacker (initiator of battle)
     clearing: int
@@ -147,13 +166,16 @@ class Battle(Action):
     
     # A battle is a complex action which involves removing pieces
     def execute(self, game: Game, suppress: bool = False) -> None:
+        from rules.rule_engine import RULE
+        from ui.renderer import Renderer
+
         RULE.illegalbattle(self)        
         # TODO
         pass
         if not suppress: print(Renderer.render_action(self))
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Craft(Action):
     initiator: Faction
     card: Card
@@ -162,6 +184,9 @@ class Craft(Action):
     forced: bool = False
     
     def execute(self, game: Game, suppress: bool = False) -> None:
+        from rules.rule_engine import RULE
+        from ui.renderer import Renderer
+        
         RULE.illegalcraft(self)
         # TODO
         pass

@@ -1,6 +1,7 @@
-from components.card import Card
-from card_data import *
 from random import shuffle
+
+from components.card import Card
+from components.data import *
 
 class Deck:
     def __init__(self, name: str, cards: list[Card]):

@@ -1,12 +1,18 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from game.game import Game
-from board.clearing import Clearing
-from ui.styles import Color
-from components.pieces import Piece
-from components.items import Item
-from components.card import Card
-from rules.modifiers import Modifier
 from enum import Enum
+from typing import TYPE_CHECKING
+
+from components.card import Card
+from components.items import Item
+from components.pieces import Piece
+from rules.modifiers import Modifier
+from ui.styles import Color
+
+if TYPE_CHECKING:
+    from board.clearing import Clearing
+    from game.game import Game
 
 
 class TurnPhase(Enum):
@@ -26,7 +32,7 @@ class TurnPhase(Enum):
                 color = Color.DAYLIGHT
             case TurnPhase.EVENING:
                 color = Color.EVENING
-        return color.style(str(self))
+        return color.style(self.value)
 
 
 class Faction(ABC):
@@ -92,6 +98,8 @@ class Faction(ABC):
         pass
 
 
+# We provide NullFaction as a container for pieces which aren't actually faction pieces
+# Namely: items, ruins, dominance cards, scrapped pieces/cards (out of play)
 class NullFaction(Faction):
     from random import shuffle
     def __init__(self, name: str = "No one"):
@@ -113,8 +121,3 @@ class NullFaction(Faction):
     
     def evening(self):
         pass
-
-
-# _ENVIRONMENT is a container for pieces which aren't actually faction pieces
-# Namely: items, ruins, dominance cards, scrapped pieces/cards (out of play)
-_ENVIRONMENT = NullFaction()

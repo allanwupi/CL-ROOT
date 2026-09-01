@@ -5,13 +5,12 @@ class Style(Enum):
     RESET = "\x1b[0m"
     DIM = "\x1b[2m"
     BOLD = "\x1b[1m"
-    NORMAL = "\x1b[22m"
     
     def __str__(self):
-        return f"{self.value}{self.name}{Style.RESET}"
+        return f"{self.value}{self.name}\x1b[0m"
     
     def style(self, text: str):
-        return f"{self.value}{text}{Style.RESET}"
+        return f"{self.value}{text}\x1b[0m"
 
 
 class Color(Enum):
@@ -47,7 +46,7 @@ class Color(Enum):
     COINS = "\x1b[38;5;222m"
     
     def __str__(self):
-        return f"{self.value}{self.name}{Style.RESET}"
+        return f"{self.value}{self.name}\x1b[0m"
 
     def style(self, text: str):
-        return f"{self.value}{text}{Style.RESET}"
+        return f"{self.value}{text}\x1b[0m"

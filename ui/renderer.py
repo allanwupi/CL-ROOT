@@ -1,12 +1,18 @@
-from game.game import Game
+from __future__ import annotations
+
+from game.action import Action, Battle, Build, Craft, Move, Place, Remove
 from game.turn_manager import TurnManager
-from game.action import Action, Place, Remove, Battle, Move, Build, Craft
-from components.pieces import Piece
 from components.items import Item, Ruin
+from components.pieces import Piece
 from board.board import Board
 from board.clearing import Clearing
 from factions.faction import Faction, TurnPhase
-from styles import *
+from ui.styles import *
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from game.game import Game
 
 
 class Renderer:
@@ -75,7 +81,7 @@ class Renderer:
             result += f'{count}x {str(key)}, '
         if len(supply) > 0:
             result = result[:-2]
-        return result
+        return result+']'
     
     @classmethod
     def render_faction_supply(cls, supply: dict[Piece, int], label: bool = False) -> str:
@@ -106,7 +112,7 @@ class Renderer:
         effects += ']'
         header: str = f"{cls.LEFT_DECORATOR}{repr(faction)} ({faction.vp}/30){cls.RIGHT_DECORATOR}"
         header = faction.color.style(header + '-'*(cls.TERMINAL_WIDTH-len(header)+2*len(faction.color.value)+len(Style.RESET.value)))
-        return '\n'.join((header, hand, effects, items, faction_supply))
+        return '\n'.join((header, hand, effects, items, faction_supply))+'\n'
 
     @staticmethod
     def render_map(board: Board) -> str:
@@ -119,8 +125,8 @@ class Renderer:
             .replace('N', Style.RESET.value)
         )
         slot_dict: dict[str, str] = {
-            f"{repr(clearing)}_{number+1:d}": Renderer.render_slot(clearing.slots[number])
-            for number, clearing in enumerate(board.clearings)
+            f"{repr(clearing)}_{i+1:d}": Renderer.render_slot(clearing.slots[i])
+            for clearing in board.clearings for i in range(0, len(clearing.slots)) 
         }
         return colored_ascii.format(**slot_dict)
     
@@ -155,8 +161,8 @@ class Renderer:
             if len(faction_presence) > 2:
                 faction_presence = faction_presence[:-2]
         result: str = (
-            f"{_clearing.suit.color.value}{_clearing.number} {_clearing.name} {buildings}{Style.RESET}"
-            f" ruled by {str(ruler)} (x{ruler_presence:d}) -> [{{_clearing.adjlist}}]\n"
+            f"{_clearing.suit.color.value}{_clearing.number} {_clearing.name} {buildings}{Style.RESET.value}"
+            f" ruled by {str(ruler)} (x{ruler_presence:d}) -> {_clearing.adjlist}\n"
             f"{faction_presence}"
         )
         return result
@@ -165,10 +171,10 @@ class Renderer:
     def render_game(cls, game: Game) -> str:
         result: str = ""
         header: str = cls.render_turn_phase(game)+"\n"
-        result += cls.render_item_supply(game.items)
-        result += cls.render_map(game.board)
-        result += (f'\033[2mTurn {game.turn_manager.turn_number}: '
-            f'{len(game.deck.draw_pile)}/{len(game.deck)} cards left in deck.\033[0m'
+        result += cls.render_item_supply(game.items)+"\n"
+        result += cls.render_map(game.board)+"\n"
+        result += (f'{Style.DIM.value}Turn {game.turn_manager.turn_number}: '
+            f'{len(game.deck.draw_pile)}/{len(game.deck)} cards left in deck.{Style.RESET.value}\n'
         )
         for faction in game.factions:
             result += cls.render_faction_board(faction)

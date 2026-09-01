@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from factions.faction import Faction
-from board.suit import Suit
 from enum import Enum
+from typing import TYPE_CHECKING
+
+from board.suit import Suit
+
+if TYPE_CHECKING:
+    from factions.faction import Faction
 
 
 class PieceType(Enum):
@@ -46,4 +52,4 @@ class Piece:
         owner: Faction = self.owner
         if self.piecetype == PieceType.BUILDING:
             return owner.color.style('['+str(self.name)+']')
-        return owner.color.style(str(self.name))
+        return owner.color.style(self.name)

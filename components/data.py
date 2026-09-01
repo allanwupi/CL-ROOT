@@ -1,6 +1,19 @@
 from components.card import Card
-from components.items import BAG, BOOT, CROSSBOW, HAMMER, SWORD, TEA, COINS
+from components.items import Item, ItemType
+from factions.faction import NullFaction
 from board.suit import Suit
+
+
+_ENVIRONMENT = NullFaction()
+
+BAG: Item = Item(owner=_ENVIRONMENT, itemtype=ItemType.BAG, points=1, suit=Suit.MOUSE)
+BOOT: Item = Item(owner=_ENVIRONMENT, itemtype=ItemType.BOOT, points=1, suit=Suit.RABBIT)
+CROSSBOW: Item = Item(owner=_ENVIRONMENT, itemtype=ItemType.CROSSBOW, points=1, suit=Suit.FOX)
+HAMMER: Item = Item(owner=_ENVIRONMENT, itemtype=ItemType.HAMMER, points=2, suit=Suit.FOX)
+SWORD: Item = Item(owner=_ENVIRONMENT, itemtype=ItemType.SWORD, points=2, suit=Suit.FOX)
+TEA: Item = Item(owner=_ENVIRONMENT, itemtype=ItemType.TEA, points=2, suit=Suit.MOUSE)
+COINS: Item = Item(owner=_ENVIRONMENT, itemtype=ItemType.COINS, points=3, suit=Suit.RABBIT)
+
 
 BASE_DECK: list[Card] = [
     Card('Stand and Deliver!', Suit.FOX, [Suit.MOUSE, Suit.MOUSE, Suit.MOUSE], persistent=True),
