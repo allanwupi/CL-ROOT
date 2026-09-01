@@ -72,7 +72,18 @@ class Remove(Action):
         piece_owner: Faction = self.piece.owner
         self._clearing[piece_owner][self.piece] -= self.numpieces
         piece_owner.supply[self.piece] += self.numpieces
-        if not suppress: print(Renderer.render_action(self))
+        vp: int = (
+            self.piece.points * self.numpieces
+            if self.owner != piece_owner
+            else 0
+        )
+        if not suppress:
+            print(Renderer.render_action(self),end='')
+            if vp:
+                print(f", scoring {vp:d} VP.")
+                game.score_vp(self.owner, vp)
+            else:
+                print()
 
 
 @dataclass(kw_only=True)

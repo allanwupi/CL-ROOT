@@ -45,7 +45,6 @@ class CLI:
 
     def main_loop(self):
         print(f"Setup complete. Press {Style.BOLD.style('<ENTER>')} to continue.\n")
-        Renderer.render_game(self.game)
         while True:
             command_sequence: str = input(f"{Style.DIM.style('>')} ")
             if not command_sequence:

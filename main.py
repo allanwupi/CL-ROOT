@@ -13,14 +13,13 @@ game: Game = Game(board=board, deck=deck)
 
 bot1 = MechanicalMarquise(name='Marquise')
 bot2 = MechanicalMarquise(name='Esiuqram', color=Color.PINK)
-
-cli: CLI = CLI(game)
+game.setup(bot1)
+game.setup(bot2)
 
 def main():
     print()
-    game.setup(bot1)
-    game.setup(bot2)
-    
+    cli: CLI = CLI(game)
+    cli.render()
     try:
         cli.main_loop()
     except KeyboardInterrupt as e:

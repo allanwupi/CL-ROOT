@@ -85,14 +85,14 @@ class Renderer:
     
     @classmethod
     def render_faction_supply(cls, supply: dict[Piece, int], label: bool = False) -> str:
-        result: str = "["
+        result: str = ""
         if label: result = f'{cls.PADDING:s}Supply  : '+result
         for piece, count in supply.items():
             if count > 0:
                 result += f'{count}x {str(piece)}, '
         if len(supply) > 0:
             result = result[:-2]
-        return result+"]"
+        return result
     
     @classmethod
     def render_faction_board(cls, faction: Faction) -> str:
