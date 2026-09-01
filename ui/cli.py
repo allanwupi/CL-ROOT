@@ -7,13 +7,13 @@ from factions.clockwork.marquise import MechanicalMarquise
 # bot1 = MechanicalMarquise(name='Marquise')
 # bot2 = MechanicalMarquise(name='Esiuqram', ansi_color='\033[38;5;183m')
 
-CONTINUE_COMMANDS = [ 'yes', 'y', 'continue', 'c', 'play', 'p', 'run', 'r', 'next']
-TERMINATE_COMMANDS = ['no', 'n', 'quit', 'q', 'exit', 'x', 'end', 'e', 'stop']
-DISPLAY_COMMANDS = ['map', 'm', 'display', 'd', 'board', 'b', 'view', 'v']
-HELP_COMMANDS = ['?', 'help', 'h', 'info', 'i', 'manual', 'man']
+_CONTINUE_COMMANDS = [ 'yes', 'y', 'continue', 'c', 'play', 'p', 'run', 'r', 'next']
+_TERMINATE_COMMANDS = ['no', 'n', 'quit', 'q', 'exit', 'x', 'end', 'e', 'stop']
+_DISPLAY_COMMANDS = ['map', 'm', 'display', 'd', 'board', 'b', 'view', 'v']
+_HELP_COMMANDS = ['?', 'help', 'h', 'info', 'i', 'manual', 'man']
 # CLEARING_VIEWS = {str(i) for i in range(1,board.size)}
-SUIT_VIEWS = {'bunny': Suit.RABBIT, 'rabbit': Suit.RABBIT, 'fox': Suit.FOX, 'mouse': Suit.MOUSE, 'wild': Suit.WILD}
-NAMED_CLEARINGS = {
+_SUIT_VIEWS = {'bunny': Suit.RABBIT, 'rabbit': Suit.RABBIT, 'fox': Suit.FOX, 'mouse': Suit.MOUSE, 'wild': Suit.WILD}
+_NAMED_CLEARINGS = {
     'hill': 1,
     'quarry': 2,
     'weald': 3,
@@ -27,9 +27,8 @@ NAMED_CLEARINGS = {
     'waterfall': 11,
     'glade': 12
 }
-EXECUTION_SYMBOLS = ['!', '/']
-
-USAGE_PROMPT: str = f"""usage:
+_EXECUTION_SYMBOLS = ['!', '/']
+_USAGE_PROMPT: str = f"""usage:
   - continue      : (y)es  | (c)ontinue | (p)lay   | (r)un  | next | <ENTER>
   - exit program  : (n)o   | (q)uit     | e(x)it   | (e)nd  | stop | <CTRL-C>
   - view clearing : [1-12] | rabbit     | bunny    | mouse  | fox  | wild

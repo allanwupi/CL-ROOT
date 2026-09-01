@@ -10,6 +10,7 @@ class Suit(Flag):
     BIRD = FOX | MOUSE | RABBIT | FROG
     WILD = ~NONE
     
+    @property
     def color(self) -> Color:
         match (self):
             case Suit.FOX:
@@ -26,4 +27,4 @@ class Suit(Flag):
     
     def __str__(self):
         suitname: str = str(self.name).title()
-        return self.color().style(suitname)
+        return self.color.style(suitname)

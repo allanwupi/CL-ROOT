@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from board.clearing import Clearing
 
+# CURRENTLY UNUSED
+# TODO
 @dataclass
 class Path:
     origin: Clearing

@@ -5,9 +5,13 @@ from random import shuffle
 class Deck:
     def __init__(self, name: str, cards: list[Card]):
         self.name: str = name
+        self.size = len(cards)
         self.draw_pile: list[Card] = cards[:]
         shuffle(self.draw_pile)
         self.discard_pile: list[Card] = []
+        
+    def __len__(self) -> int:
+        return self.size
     
     def draw(self, numcards: int = 1) -> list[Card]:
         drawn: list[Card] = []

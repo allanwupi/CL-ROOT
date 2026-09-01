@@ -21,7 +21,7 @@ class Color(Enum):
     SUCCESS = "\x1b[32m"
     
     # Suit colors
-    NONE = Style.DIM
+    NONE = "\x1b[2m"
     FOX = "\x1b[38;5;167m"
     MOUSE = "\x1b[38;5;216m"
     RABBIT = "\x1b[38;5;228m"

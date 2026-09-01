@@ -11,5 +11,8 @@ class Board():
     def slots(self):
         """Returns a dict with the building strings of clearing slots"""
     
-    def __getitem__(self, key):
+    def __len__(self) -> int:
+        return self.size
+    
+    def __getitem__(self, key: int):
         return self.clearings[key]

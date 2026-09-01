@@ -8,7 +8,7 @@ from rules.modifiers import Modifier
 class Card:
     name: str
     suit: Suit
-    cost: list[Suit]
+    cost: list[Suit] | None = None
     item: Item | None = None
     persistent: bool = False
     effect: Modifier | None = None
@@ -17,5 +17,5 @@ class Card:
         return self.name
         
     def __str_(self):
-        suit_color: Color = self.suit.color()
-        return suit_color.style(self.name.title())
+        suit_color: Color = self.suit.color
+        return suit_color.style(self.name)

@@ -15,9 +15,6 @@ class FactionPresence:
 
 
 class Clearing:
-    BLOCKED_SLOT: str = '[#]'
-    FREE_SLOT: str = '[ ]'
-    
     def __init__(self, number: int, name: str, suit: Suit, adjlist: list[int], slots: list[Piece | None]):
         self.number: int = number
         self.name: str = name
@@ -62,6 +59,10 @@ class Clearing:
         elif len(factions_by_rule) > 1 and factions_by_rule[0].rule == factions_by_rule[1].rule:
             return None # On a tie, no one rules
         return factions_by_rule[0].faction
+
+    @property
+    def free(self) -> bool:
+        return None in self.slots
     
     def __getitem__(self, key: Faction) -> dict[Piece, int]:
         return self.pieces[key]
@@ -70,5 +71,5 @@ class Clearing:
         return self.name.lower()
         
     def __str_(self):
-        suit_color: Color = self.suit.color()
+        suit_color: Color = self.suit.color
         return suit_color.style(self.name.title())
