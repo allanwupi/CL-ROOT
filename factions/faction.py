@@ -20,9 +20,6 @@ class TurnPhase(Enum):
     DAYLIGHT = 'Daylight'
     EVENING = 'Evening'
     
-    def __repr__(self):
-        return self.value
-    
     def __str__(self):
         color: Color = Color.NONE
         match (self):
@@ -55,9 +52,9 @@ class Faction(ABC):
     
     def __setitem__(self, key: Piece, value: int) -> None:
         self.supply[key] = value 
-    
+
     def __repr__(self):
-        return self.name
+        return f"Faction(name={self.name!r}, supply={self.supply})"
     
     def __str__(self):
         return self.color.style(self.name)

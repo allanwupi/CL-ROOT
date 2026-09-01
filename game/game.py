@@ -47,7 +47,7 @@ class Game:
         faction.setup(self)
         self.turn_manager.player_count += 1
         
-    def increment_score(self, faction: Faction, numpoints: int) -> None:
+    def score_vp(self, faction: Faction, numpoints: int) -> None:
         if faction not in self.factions:
             print(f"{str(faction)} is not a player.")
             return
@@ -69,3 +69,7 @@ class Game:
     
     def __getitem__(self, key: int) -> Clearing:
         return self.board.clearings[key]
+    
+    def __str__(self) -> str:
+        from ui.renderer import Renderer
+        return Renderer.render_game(self)

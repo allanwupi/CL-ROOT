@@ -51,10 +51,11 @@ class CLI:
                 self.game.play()
             elif command_sequence[0] in self.EXECUTION_COMMANDS:
                 try:
-                    exec(command_sequence[1:])
+                    exec(f"print({command_sequence[1:].replace('game','self.game')})")
                     continue
                 except Exception as e:
                     print(f"{Color.ERROR.style(repr(e))}")
+                    continue
             tokens: list[str] = command_sequence.split()
             for command in tokens:
                 if command.lower() in self.CONTINUE_COMMANDS:

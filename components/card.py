@@ -12,9 +12,6 @@ class Card:
     item: Item | None = None
     persistent: bool = False
     effect: Modifier | None = None
-    
-    def __repr__(self):
-        return self.name
         
     def __str_(self):
         suit_color: Color = self.suit.color

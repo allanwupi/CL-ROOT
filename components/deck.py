@@ -26,8 +26,9 @@ class Deck:
     def add(self, cards: list[Card]) -> None:
         self.draw_pile.extend(cards)
         
-    def discard(self, cards: list[Card]) -> None:
-        self.discard_pile.extend(cards)
+    def discard(self, pile: list[Card], card: Card)-> None:
+        pile.remove(card)
+        self.discard_pile.append(card)
     
     def reshuffle(self) -> None:
         self.draw_pile.extend(self.discard_pile)

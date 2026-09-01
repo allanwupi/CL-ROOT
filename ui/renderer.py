@@ -110,8 +110,8 @@ class Renderer:
         if len(faction.effects) > 0:
             effects = effects[:-2]
         effects += ']'
-        header: str = f"{cls.LEFT_DECORATOR}{repr(faction)} ({faction.vp}/30){cls.RIGHT_DECORATOR}"
-        header = faction.color.style(header + '-'*(cls.TERMINAL_WIDTH-len(header)+2*len(faction.color.value)+len(Style.RESET.value)))
+        header: str = f"{cls.LEFT_DECORATOR}{faction.name} ({faction.vp}/30 VP){cls.RIGHT_DECORATOR}"
+        header = faction.color.style(header + '-'*(cls.TERMINAL_WIDTH-len(header)))
         return '\n'.join((header, hand, effects, items, faction_supply))+'\n'
 
     @staticmethod
@@ -125,7 +125,7 @@ class Renderer:
             .replace('N', Style.RESET.value)
         )
         slot_dict: dict[str, str] = {
-            f"{repr(clearing)}_{i+1:d}": Renderer.render_slot(clearing.slots[i])
+            f"{clearing.name.lower()}_{i+1:d}": Renderer.render_slot(clearing.slots[i])
             for clearing in board.clearings for i in range(0, len(clearing.slots)) 
         }
         return colored_ascii.format(**slot_dict)

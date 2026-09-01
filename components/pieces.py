@@ -48,6 +48,9 @@ class Piece:
             self, 'requires_slot', self.piecetype == PieceType.BUILDING
         )
     
+    def __repr__(self):
+        return self.name
+    
     def __str__(self):
         owner: Faction = self.owner
         if self.piecetype == PieceType.BUILDING:
