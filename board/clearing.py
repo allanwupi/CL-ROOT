@@ -1,22 +1,74 @@
 # from board.path import Path
 from board.suit import Suit
 from board.location import Location
+from factions.faction import Faction
+from dataclasses import dataclass
+from components.pieces import Piece
 from ui.styles import Color
+
+
+@dataclass(frozen=True)
+class FactionPresence:
+    faction: Faction
+    numpieces: int
+    rule: int
+
 
 class Clearing:
     BLOCKED_SLOT: str = '[#]'
     FREE_SLOT: str = '[ ]'
     
-    def __init__(self, number: int, name: str, suit: Suit, adjlist: list[int], slots: list[str]):
+    def __init__(self, number: int, name: str, suit: Suit, adjlist: list[int], slots: list[Piece | None]):
         self.number: int = number
         self.name: str = name
         self.suit: Suit = suit
-        self.slots: list[str] = slots
+        self.slots: list[Piece | None] = slots
         self.adjlist: list[int] = adjlist
-        self.presence: dict[str, str] = dict()
+        self.pieces: dict[Faction, dict[Piece, int]] = dict()
         self.location: Location = Location.from_number(self.number)
         self.chosen: bool = False # Chosen as homeland
     
+    # Read-only, dynamically calculated fields for rule and presence
+    @property
+    def presence(self) -> list[FactionPresence]:
+        faction_presence: list[FactionPresence] = []
+        for faction in self.pieces.keys():
+            numpieces: int = sum(count for count in self.pieces[faction].values())
+            rule: int = sum(
+                self.pieces[faction][piece]
+                for piece in self.pieces[faction].keys() if piece.can_rule
+            )
+            faction_presence.append(
+                FactionPresence(faction, numpieces, rule)
+            )
+        return faction_presence
+    
+    def faction_presence(self, key: Faction) -> FactionPresence:
+        numpieces: int = sum(count for count in self.pieces[key].values())
+        rule: int = sum(
+                self.pieces[key][piece]
+                for piece in self.pieces[key].keys() if piece.can_rule
+            )
+        return(FactionPresence(key, numpieces, rule))
+    
+    @property
+    def ruler(self) -> Faction | None:
+        factions_by_rule: list[FactionPresence] = sorted(
+            self.presence,
+            key=lambda x: x.rule, reverse=True
+        )
+        if len(factions_by_rule) == 0:
+            return None # The higher-level board object will replace this with NullFaction
+        elif len(factions_by_rule) > 1 and factions_by_rule[0].rule == factions_by_rule[1].rule:
+            return None # On a tie, no one rules
+        return factions_by_rule[0].faction
+    
+    def __getitem__(self, key: Faction) -> dict[Piece, int]:
+        return self.pieces[key]
+    
+    def __repr__(self):
+        return self.name.lower()
+        
     def __str_(self):
         suit_color: Color = self.suit.color()
-        return suit_color.color(self.name.title())
+        return suit_color.style(self.name.title())

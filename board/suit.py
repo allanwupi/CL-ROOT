@@ -26,4 +26,4 @@ class Suit(Flag):
     
     def __str__(self):
         suitname: str = str(self.name).title()
-        return self.color().color(suitname)
+        return self.color().style(suitname)

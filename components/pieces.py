@@ -44,4 +44,6 @@ class Piece:
     
     def __str__(self):
         owner: Faction = self.owner
-        return owner.color.color(str(self.name))
+        if self.piecetype == PieceType.BUILDING:
+            return owner.color.style('['+str(self.name)+']')
+        return owner.color.style(str(self.name))
