@@ -27,7 +27,6 @@ def main():
         return()
     except GameOver as e:
         print(e)
-        cli.render()  # Show final board state
 
 
 if __name__ == "__main__":

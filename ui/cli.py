@@ -90,7 +90,7 @@ class CLI:
                     for number in clearing_numbers:
                         print(Renderer.render_clearing(self.game, number))
                 elif command.lower() in self.TERMINATE_COMMANDS:
-                    raise GameOver("Game was terminated.")
+                    raise GameOver(f"{Color.ERROR.style('Game was terminated.\n')}")
                 else:
                     print(self.USAGE_PROMPT)
                     break

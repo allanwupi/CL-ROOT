@@ -30,6 +30,9 @@ class MechanicalMarquise(Faction):
     def __repr__(self):
         return f"MechanicalMarquise(name={self.name!r}, supply={self.supply}, color={self.color.name})"
     
+    def __str__(self):
+        return f"{self.color.style(self.name)}"
+    
     def battle(self, u: int, defender: Faction) -> None:
         if self.game is None:
             raise AttributeError("Game was not initialised!")
@@ -122,7 +125,7 @@ class MechanicalMarquise(Faction):
         """Execute the birdsong phase."""
         self.draw(self.revealed, 1)
         self.order = self.revealed[0]
-        print(f"{self.name} reveals {str(self.order)}.")
+        print(f"{str(self)} reveals {str(self.order)}.")
         if (self.order.item and self.order.item.in_stock):
             self.craft(self.revealed, self.order, override = 1)
         elif (self.order.persistent and self.order not in self.effects):
@@ -136,7 +139,7 @@ class MechanicalMarquise(Faction):
         """Execute the evening phase."""
         while len(self.revealed) > 0:
             self.discard(self.revealed, self.revealed[-1])
-        print(f"{self.name} discards {self.order}.")
+        print(f"{str(self)} discards {self.order}.")
 
 """
     # Birdsong

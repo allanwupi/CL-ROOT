@@ -168,7 +168,7 @@ class Renderer:
             if present.numpieces > 0:
                 faction_presence += (
                     f"{_PADDING}{faction.color.style(faction.name)} : "
-                    f"{cls.render_faction_supply(faction.supply)}\n"
+                    f"{cls.render_faction_supply(_clearing.pieces[faction])}\n"
                 )
         if len(faction_presence) > 0:
             faction_presence = faction_presence[:-1]
