@@ -3,9 +3,9 @@
 This Python program simulates the board game Root with Clockwork Expansion bots. Bots are based on the [Clockwork: Definitive Edition playtest boards](https://boardgamegeek.com/thread/2068034/better-bot-project-24082026-new-catalliancemolecro), published on 24 August 2026.
 
 ## Goals 
-- Implement a command-line version of the board game Root, conforming as closely as possible to the [official rules](https://rules.ledergames.com/?product=root&locale=en-US&printing=p16)
+- Implement a command-line version of the board game Root, conforming as closely as possible to the [official rulebook] (https://rules.ledergames.com/?product=root&locale=en-US&printing=p16) from Leder Games.
     - Run the simulation and watch bot factions play against each other
-    - Using the CLI documentation, you can manually control the factions
+    - Input Python commands to inspect objects and manually control the factions
     - Eventually support rules for playing as a human faction against the bots
 - Learn and practise the object-oriented programming paradigm in Python
 - (tentatively, in the far future) Learn more logic programming and rewrite this in Prolog
