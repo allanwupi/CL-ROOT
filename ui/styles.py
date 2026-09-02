@@ -5,6 +5,8 @@ class Style(Enum):
     RESET = "\x1b[0m"
     DIM = "\x1b[2m"
     BOLD = "\x1b[1m"
+    ITALIC = "\x1b[3m"
+    NOITALIC = "\x1b[23m"
     NORMAL = "\x1b[22m"
     
     def __str__(self):

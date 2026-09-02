@@ -89,10 +89,15 @@ class Renderer:
     def render_item_supply(cls, supply: dict[Item, int], label: bool = False) -> str:
         result: str = "["
         if label: result = f"{_PADDING}Items   : "+result
+        cumulative: int = 0
         for key, count in supply.items():
-            result += f'{count}x {str(key)}, '
-        if len(supply) > 0:
+            if count > 0:
+                result += f'{count}x {str(key)}, '
+                cumulative += count
+        if cumulative > 0:
             result = result[:-2]
+        else:
+            return f"{Style.ITALIC.value}{Style.DIM.style('[no items left in supply]')}"
         return result+']'
     
     @classmethod
@@ -185,9 +190,12 @@ class Renderer:
         result: str = ""
         result += cls.render_item_supply(game.items)+"\n"
         result += cls.render_map(game.board)+"\n"
-        result += (f'{Style.DIM.value}Turn {game.turn_manager.turn_number}: '
-            f'{len(game.deck.draw_pile)}/{len(game.deck)} cards left in deck.{Style.RESET.value}\n'
-        )
+        if game.winner is None:
+            result += (f'{Style.DIM.value}Turn {game.turn_manager.turn_number}: '
+                f'{len(game.deck.draw_pile)}/{len(game.deck)} cards left in deck.{Style.RESET.value}\n'
+            )
+        else: # The game ends mid-turn, so that turn still counts as taken
+            result += f'Turn {game.turn_manager.turn_number}: {game.winner} victory!\n'
         for faction in game.factions:
             result += cls.render_faction_board(faction)
         return result

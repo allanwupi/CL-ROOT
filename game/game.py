@@ -30,7 +30,10 @@ class Game:
         self.pause_each_phase = pause_each_phase
         self.factions: list[Faction] = []
         self.turn_manager: TurnManager = TurnManager()
-        self.vp_history: list[list] = []
+        self.winner: Faction | None = None
+        self.VP_THRESHOLD: int = 30
+        self.TIMEOUT_TURNS: int = 30
+        self.END_THIS_TURN: bool = False
     
     @property
     def items(self) -> dict[Item, int]:
@@ -43,7 +46,6 @@ class Game:
             clearing.pieces[faction].update(empty_supply)
         self.factions.append(faction)
         faction.setup(self)
-        self.vp_history.append([])
         self.turn_manager.player_count += 1
         
     def score_vp(self, faction: Faction, numpoints: int, suppress: bool = False) -> None:
@@ -55,9 +57,9 @@ class Game:
             # print(f"{_PADDING}{str(faction)} {'scores' if numpoints > 0 else 'loses'} {numpoints:d} VP.")
             print(f"{_PADDING}{'+' if numpoints > 0 else '-'}{numpoints:d} VP")
         faction.vp += numpoints
-        if faction.vp >= 30:
-            self.vp_history[self.turn_manager.current_player].append(faction.vp)
-            raise GameOver(f"{str(faction)} victory!")
+        if faction.vp >= self.VP_THRESHOLD:
+            self.winner = faction
+            raise GameOver(f"\n{str(faction)} wins the game with {faction.vp:d} VP!\n")
         
     def play(self) -> None:
         from ui.renderer import Renderer
@@ -76,8 +78,11 @@ class Game:
         self.turn_manager.current_phase = TurnPhase.EVENING
         print(Renderer.render_turn_phase(self))
         faction.evening()
-        self.vp_history[player].append(faction.vp)
         print()
+        if self.END_THIS_TURN:
+            raise GameOver(f"Timeout triggered.\n")
+        if self.turn_manager.turn_number >= self.TIMEOUT_TURNS:
+            self.END_THIS_TURN = True
     
     def __getitem__(self, key: int) -> Clearing:
         return self.board.clearings[key]
