@@ -80,13 +80,11 @@ class MechanicalMarquise(BotFaction):
         ).execute(suppress=suppress)
         # Score points according to the number of buildings left on the track
         if noscore:
+            print(".")
             return
         vp: int = 7-self.supply[building]
-        if vp:
-            self.score(vp, suppress=True)
-            print(f', scoring {vp:d} VP.')
-        else:
-            print('.')
+        self.score(vp, suppress=True)
+        print(f', scoring {vp:d} VP.')
     
     def craft(self, card_pile: list[Card], card: Card, override: int = 1, suppress: bool = False) -> None:
         if self.game is None:
