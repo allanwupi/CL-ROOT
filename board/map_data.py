@@ -43,7 +43,7 @@ AUTUMN_MAP = [
 # 1. Replace F,M,R with fox, mouse and rabbit color codes (N for reset)
 # 2. Replace { } with building slots
 AUTUMN_MAP_ASCII = r'''
-                        R+-creek-+N
+                         R+-creek-+N
     F+-hill--+N            R|    {creek_1}R|N
     F| {hill_1}F   |N------------R|{creek_2}R    |N___
     F|       |N            R|       |N   \_____
@@ -70,10 +70,3 @@ AUTUMN_MAP_ASCII = r'''
     R+---4---+N       F|  {meadow_2}F  |N      M+---7---+N     R|       |N
                     F+---8---+N                    R+---3---+N
 '''
-
-def color_map(ascii: str) -> str:
-    from ui.styles import Color, Style
-    ascii = ascii.replace('F', Color.FOX.value)
-    ascii = ascii.replace('M', Color.MOUSE.value)
-    ascii = ascii.replace('R', Color.RABBIT.value)
-    return ascii.replace('N', Style.RESET.value)
