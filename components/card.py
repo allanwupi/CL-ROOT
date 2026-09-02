@@ -4,15 +4,16 @@ from ui.styles import Color
 from components.items import Item
 from rules.modifiers import Modifier
 
-@dataclass
+
+@dataclass(frozen=True)
 class Card:
     name: str
     suit: Suit
-    cost: list[Suit] | None = None
+    cost: tuple[Suit, ...] | None = None
     item: Item | None = None
     persistent: bool = False
     effect: Modifier | None = None
         
-    def __str_(self):
+    def __str__(self):
         suit_color: Color = self.suit.color
         return suit_color.style(self.name)

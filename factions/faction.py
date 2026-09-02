@@ -64,19 +64,15 @@ class Faction(ABC):
     def __str__(self):
         return self.color.style(self.name)
     
-    def draw(self, numcards: int = 1) -> None:
+    def draw(self, pile: list[Card], numcards: int = 1) -> None:
         if self.game is None:
             raise AttributeError("Game was not initialised")
         drawn: list[Card] = self.game.deck.draw(numcards)
-        if self.handsize > 0:
-            self.hand.extend(drawn)
-        else:
-            self.revealed.extend(drawn)
+        pile.extend(drawn)
     
     def discard(self, pile: list[Card], card: Card) -> None:
         if self.game is None:
             raise AttributeError("Game was not initialised")
-        pile.remove(card)
         self.game.deck.discard(pile, card)
 
     @abstractmethod
