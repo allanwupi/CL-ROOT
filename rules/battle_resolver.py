@@ -1,4 +1,5 @@
 from __future__ import annotations
+from game.action import Battle, Remove
 from board.clearing import Clearing
 from factions.faction import Faction
 from components.pieces import Piece
@@ -6,7 +7,6 @@ from components.pieces import Piece
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from game.action import Battle, Remove
     from game.game import Game
 
 class BattleResolver:

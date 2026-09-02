@@ -29,7 +29,7 @@ class RuleEngine:
     ENEMY_HAS_PIECES = lambda x: isinstance(x, Battle) and x._clearing.faction_presence(x.defender).numpieces > 0
     ITEM_IN_STOCK = lambda x: isinstance(x, Craft) and (x.card.item is None or x.card.item.in_stock)
     RULES_DESTINATION = lambda x: isinstance(x, Move) and x.owner == x._destination.ruler
-    MATCHING_CLEARING = lambda x: isinstance(x, Move | Battle | Place) and x._clearing.suit in x.suit
+    MATCHING_CLEARING = lambda x: isinstance(x, Move | Battle | Remove | Place) and x._clearing.suit in x.suit
     ADJACENT_CLEARINGS = lambda x: isinstance(x, Move) and x.destination in x._clearing.adjlist
     CLEARING_HAS_PIECE = lambda x: isinstance(x, Place) and x._clearing.has_piece(x.at_piece)
     NO_DUPLICATE_CARDS = lambda x: isinstance(x, Craft) and x.card not in x.owner.effects
@@ -45,6 +45,8 @@ class RuleEngine:
     def check(cls, act: Action, predicate: str | Callable[[Action], bool]) -> bool:
         if isinstance(predicate, str):
             _predicate: Callable[[Action], bool] | None = cls.ADDED_PREDICATES.get(predicate)
+            if _predicate is None:
+                _predicate = getattr(cls, predicate, None)
             if _predicate is None:
                 return False
             return _predicate(act)
@@ -87,8 +89,8 @@ class RuleEngine:
         if not cls.check(move, cls.SUFFICIENT_PIECES):   
             raise RuleBreach("Supply does not have enough pieces. Pieces are limited by the contents of the game.")
         if (not move.ignores_rule
-            and not cls.check(move, "RULES_CLEARING")
-            and not cls.check(move, "RULES_DESTINATION")
+            and not cls.check(move, cls.RULES_CLEARING)
+            and not cls.check(move, cls.RULES_DESTINATION)
         ):
             raise RuleBreach("To take a move, you must rule the origin clearing, destination clearing, or both.")
         if not cls.check(move, cls.ADJACENT_CLEARINGS):

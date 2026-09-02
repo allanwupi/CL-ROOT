@@ -18,6 +18,7 @@ class FactionPresence:
     faction: Faction
     numpieces: int
     rule: int
+    battle: int
 
 
 class Clearing:
@@ -42,8 +43,12 @@ class Clearing:
                 self.pieces[faction][piece]
                 for piece in self.pieces[faction].keys() if piece.can_rule
             )
+            battle: int = sum(
+                self.pieces[faction][piece]
+                for piece in self.pieces[faction].keys() if piece.can_battle
+            )
             faction_presence.append(
-                FactionPresence(faction, numpieces, rule)
+                FactionPresence(faction, numpieces, rule, battle)
             )
         return faction_presence
     
@@ -53,7 +58,11 @@ class Clearing:
                 self.pieces[key][piece]
                 for piece in self.pieces[key].keys() if piece.can_rule
             )
-        return(FactionPresence(key, numpieces, rule))
+        battle: int = sum(
+                self.pieces[key][piece]
+                for piece in self.pieces[key].keys() if piece.can_battle
+            )
+        return(FactionPresence(key, numpieces, rule, battle))
     
     def has_piece(self, piece: Piece | None) -> bool:
         return (piece is None) or self.pieces[piece.owner][piece] > 0
@@ -88,6 +97,6 @@ class Clearing:
     def __repr__(self):
         return self.name.lower()
         
-    def __str_(self):
+    def __str__(self):
         suit_color: Color = self.suit.color
         return suit_color.style(self.name.title())

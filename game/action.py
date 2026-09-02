@@ -21,6 +21,7 @@ class Action(ABC):
     clearing: int
     piece: Piece
     numpieces: int
+    suit: Suit = Suit.WILD
     _clearing: Clearing = field(init=False)
     
     def __post_init__(self):
@@ -63,6 +64,7 @@ class Remove(Action):
     clearing: int
     piece: Piece
     numpieces: int
+    suit: Suit = Suit.WILD
     forced: bool = False
     
     def execute(self, suppress: bool = False) -> None:
@@ -97,8 +99,13 @@ class Move(Action):
     ignores_rule: bool = False
     forced: bool = False
     _destination: Clearing = field(init=False)
+    _clearing: Clearing = field(init=False)
     
     def __post_init__(self):
+        object.__setattr__(
+            self, '_clearing',
+            self.game[self.clearing]
+        )
         object.__setattr__(
             self, '_destination',
             self.game[self.destination]
@@ -166,17 +173,23 @@ class Recruit(Place):
 
 @dataclass(kw_only=True)
 class Battle(Action):
+    game: Game
     owner: Faction # Owner is the attacker (initiator of battle)
     clearing: int
     piece: Piece # Only matters if this is the Warlord (not yet implemented)
     defender: Faction
-    numpieces: int = field(init=False)
     suit: Suit = Suit.WILD
     forced: bool = False
+    numpieces: int = field(init=False)
     rolls: tuple[int, int] = field(init=False)
+    _clearing: Clearing = field(init=False)
     
     def __post_init__(self):
         from random import randint
+        object.__setattr__(
+            self, '_clearing',
+            self.game[self.clearing]
+        )
         object.__setattr__(
             self, 'numpieces',
             self._clearing[self.piece.owner][self.piece]
@@ -208,6 +221,7 @@ class Craft(Action):
     numpieces: int # Not used
     crafting_pieces: list[Piece]
     crafting_clearings: list[Clearing]
+    suit: Suit = Suit.WILD
     override: int = -1
     forced: bool = False
     ignores_cost: bool = False

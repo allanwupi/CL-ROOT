@@ -65,13 +65,16 @@ class Game:
         print(Renderer.render_turn_phase(self))
         faction.birdsong()
         if self.pause_each_phase: input()
+        else: print()
         self.turn_manager.current_phase = TurnPhase.DAYLIGHT
         print(Renderer.render_turn_phase(self))
         faction.daylight()
         if self.pause_each_phase: input()
+        else: print()
         self.turn_manager.current_phase = TurnPhase.EVENING
         print(Renderer.render_turn_phase(self))
         faction.evening()
+        print()
     
     def __getitem__(self, key: int) -> Clearing:
         return self.board.clearings[key]

@@ -2,6 +2,7 @@ from board.clearing import Clearing
 from board.suit import Suit
 from board.location import Location
 from factions.faction import Faction, NullFaction
+from components.pieces import Piece
 from components.data import _ENVIRONMENT
 
 class Board():
@@ -22,42 +23,48 @@ class Board():
     def get_obj_from_indices(self, clearings: list[int]) -> list[Clearing]:
         return [self.clearings[number] for number in clearings]
     
-    def filter(
+    def get_clearings(
         self, ruler: Faction | None = None, faction: Faction | None = None,
         suit: Suit = Suit.WILD, location: Location | None = None,
         not_picked: bool = False, return_indices: bool = True
     ) -> list:
         # Work with indices then convert back to clearings as final step if necessary
-        filtered_by_suit: list[int] = [i for i in range(self.size) if self.clearings[i].suit in suit]
-        print('1', filtered_by_suit)
+        filtered_by_suit: list[int] = [i for i in range(1, self.size) if self.clearings[i].suit in suit]
         filtered_by_presence: list[int] = (
             [i for i in filtered_by_suit if self.clearings[i].faction_presence(faction).numpieces > 0]
             if faction is not None
             else filtered_by_suit
         )
-        print('2', filtered_by_presence)
         filtered_by_ruler: list[int] = (
-            [i for i in filtered_by_presence if self.clearings[i].ruler is self.clearings[i].ruler == ruler]
-            if faction is not None
+            [i for i in filtered_by_presence if self.clearings[i].ruler is not None and self.clearings[i].ruler == ruler]
+            if ruler is not None
             else filtered_by_presence
         )
-        print('3', filtered_by_ruler)
         filtered_by_location: list[int] = (
             [i for i in filtered_by_ruler if self.clearings[i].location == location]
             if location is not None
             else filtered_by_ruler
         )
-        print('4', filtered_by_location)
         final: list[int] = (
             [i for i in filtered_by_location if not self.clearings[i].homeland]
             if not_picked
             else filtered_by_location
         )
-        print('5', final)
         if return_indices:
             return final
         else:
             return [self.clearings[i] for i in final]
+    
+    def get_battles(self, attacker: Faction, suit: Suit = Suit.WILD) -> list[tuple[int, Faction]]:
+        filtered_by_suit: list[int] = [i for i in range(1, self.size) if self.clearings[i].suit in suit]
+        attacker_present: list[int] = [
+            i for i in filtered_by_suit if self.clearings[i].faction_presence(attacker).battle > 0
+        ]
+        battles: list[tuple[int, Faction]] = [
+            (i, faction) for i in attacker_present for faction in self.clearings[0].pieces.keys()
+            if faction != attacker and self.clearings[i].faction_presence(faction).numpieces > 0
+        ]
+        return battles
     
     def check_adjacency(self, clearing: Clearing | int, destination: Clearing | int) -> bool:
         origin_number: int = self.get_clearing_index(clearing)
@@ -71,6 +78,17 @@ class Board():
         number: int = self.get_clearing_index(clearing)
         adjacent: list[int] = [i for i in self.clearings[number].adjlist]
         return adjacent if return_indices else self.get_obj_from_indices(adjacent)
+    
+    def count_pieces(self, clearing: int, piece: Piece) -> int:
+        return self.clearings[clearing].pieces[piece.owner][piece]
+    
+    def count_enemies(self, clearing: int, faction: Faction, rule: bool = False) -> int:
+        return sum(
+            self.count_pieces(clearing, piece)
+            for f in self[clearing].pieces.keys()
+            for piece in self[clearing].pieces[f].keys()
+            if f != faction and (not rule or piece.can_rule)
+        )
     
     def __len__(self) -> int:
         return self.size
