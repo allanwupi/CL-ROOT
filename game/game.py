@@ -50,7 +50,8 @@ class Game:
             return
         if abs(numpoints > 0) and not suppress:
             from ui.renderer import _PADDING
-            print(f"{_PADDING}{str(faction)} {'scores' if numpoints > 0 else 'loses'} {numpoints:d} VP.")
+            # print(f"{_PADDING}{str(faction)} {'scores' if numpoints > 0 else 'loses'} {numpoints:d} VP.")
+            print(f"{_PADDING}{'+' if numpoints > 0 else '-'}{numpoints:d} VP")
         faction.vp += numpoints
         if faction.vp >= 30:
             raise GameOver(f"{str(faction)} victory!")
@@ -65,12 +66,10 @@ class Game:
         print(Renderer.render_turn_phase(self))
         faction.birdsong()
         if self.pause_each_phase: input()
-        else: print()
         self.turn_manager.current_phase = TurnPhase.DAYLIGHT
         print(Renderer.render_turn_phase(self))
         faction.daylight()
         if self.pause_each_phase: input()
-        else: print()
         self.turn_manager.current_phase = TurnPhase.EVENING
         print(Renderer.render_turn_phase(self))
         faction.evening()

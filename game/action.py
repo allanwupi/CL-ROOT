@@ -55,7 +55,7 @@ class Place(Action):
         piece_owner: Faction = self.piece.owner
         piece_owner.supply[self.piece] -= self.numpieces
         self._clearing[piece_owner][self.piece] += self.numpieces
-        if not suppress: print(Renderer.render_action(self))
+        if not suppress: print(Renderer.render_action(self),end='')
 
 
 @dataclass(kw_only=True)
@@ -83,9 +83,12 @@ class Remove(Action):
             if self.owner != piece_owner
             else 0
         )
-        if not suppress: print(Renderer.render_action(self))
+        if not suppress: print(Renderer.render_action(self),end='')
         if vp:
-            self.game.score_vp(self.owner, vp, suppress)
+            self.game.score_vp(self.owner, vp, suppress=True)
+            print(f', scoring {vp:d} VP.')
+        else:
+            print('.')
 
 
 @dataclass(kw_only=True)
@@ -119,7 +122,7 @@ class Move(Action):
         RuleEngine.illegalmove(self)
         self._clearing[self.owner][self.piece] -= self.numpieces
         self._destination[self.owner][self.piece] += self.numpieces
-        if not suppress: print(Renderer.render_action(self))
+        if not suppress: print(Renderer.render_action(self),end='.\n')
 
 
 @dataclass(kw_only=True)
@@ -144,7 +147,7 @@ class Build(Place):
         self._clearing[piece_owner][self.piece] += self.numpieces
         self._clearing.build(self.piece)
         # Note that building does not score by default, this responsibility lies with the faction
-        if not suppress: print(Renderer.render_action(self))
+        if not suppress: print(Renderer.render_action(self),end='')
 
 
 @dataclass(kw_only=True)
@@ -236,16 +239,21 @@ class Craft(Action):
             from rules.craft_resolver import CraftResolver
             if not CraftResolver(game=self.game, craft=self).resolve():
                 raise RuleBreach("Failed to select crafting pieces.")
+        if not suppress: print(Renderer.render_action(self),end='')
+        vp: int = 0
         if self.card.item is not None:
-            vp: int = (
+            vp = (
                 self.override
                 if self.override >= 0
                 else self.card.item.points
             )
-            self.game.score_vp(self.owner, vp)
             self.owner.items[self.card.item] = self.owner.items.get(self.card.item, 0) + 1
             self.supplier.items[self.card.item] -= 1
         if self.card.persistent:
             self.owner.effects.add(self.card)
+        if vp:
+            self.game.score_vp(self.owner, vp, suppress=True)
+            print(f', scoring {vp:d} VP.')
+        else:
+            print('.')
         self.owner.discard(self.card_pile, self.card)
-        if not suppress: print(Renderer.render_action(self))

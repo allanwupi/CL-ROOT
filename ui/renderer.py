@@ -63,26 +63,26 @@ class Renderer:
     @classmethod
     def render_action(cls, act: Action) -> str:
         if isinstance(act, Recruit):
-            return f"{_PADDING}{str(act.owner)} recruits {act.numpieces:d}x {str(act.piece)} in {str(act._clearing)}. "
+            return f"{_PADDING}{str(act.owner)} recruits {act.numpieces:d}x {str(act.piece)} in {str(act._clearing)}."
         if isinstance(act, Move):
             return (
                 f"{str(act.owner)} moves {act.numpieces:d}x {str(act.piece)}"
-                f" from {str(act._clearing)} to {str(act._destination)}. "
+                f" from {str(act._clearing)} to {str(act._destination)}"
             )
         if isinstance(act, Battle):
-            return f"{str(act.owner)} battles {str(act.defender)} in {str(act._clearing)}. Dice rolls: {act.rolls}. "
+            return f"{str(act.owner)} battles {str(act.defender)} in {str(act._clearing)}. Dice rolls are {act.rolls}."
         if isinstance(act, Build):
             if act.numpieces > 1:
-                return f"{str(act.owner)} builds {act.numpieces:d}x {str(act.piece)} in {str(act._clearing)}. "
-            return f"{str(act.owner)} builds {str(act.piece)} in {str(act._clearing)}. "
+                return f"{str(act.owner)} builds {act.numpieces:d}x {str(act.piece)} in {str(act._clearing)}"
+            return f"{str(act.owner)} builds {str(act.piece)} in {str(act._clearing)}"
         if isinstance(act, Place):
-            return f"{_PADDING}{str(act.owner)} places {act.numpieces:d}x {str(act.piece)} in {str(act._clearing)}. "
+            return f"{str(act.owner)} places {act.numpieces:d}x {str(act.piece)} in {str(act._clearing)}"
         if isinstance(act, Remove):
-            return f"{_PADDING}{str(act.owner)} removes {str(act.numpieces)}x {act.piece} in {str(act._clearing)}. "
+            return f"{_PADDING}{str(act.owner)} removes {str(act.numpieces)}x {act.piece} in {str(act._clearing)}"
         if isinstance(act, Craft):
             if act.card.item is not None:
-                return f"{str(act.owner)} crafts {str(act.card.item)}. "
-            return f"{str(act.owner)} crafts {str(act.card)}. "
+                return f"{str(act.owner)} crafts {str(act.card.item)}"
+            return f"{str(act.owner)} crafts {str(act.card)}"
         return Color.WARNING.style(f"Action {repr(act)} was not rendered.")
 
     @classmethod

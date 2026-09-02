@@ -6,11 +6,11 @@ from board.location import Location
 class MechanicalMarquise(BotFaction):    
     def __init__(self, name: str, color: Color = Color.ORANGE):
         self._WARRIOR = Piece(self, "Warrior", PieceType.WARRIOR, 0, Suit.WILD, movable=True, crafting=False)
-        self._KEEP = Piece(self, "Keep", PieceType.TOKEN, 0, Suit.WILD, movable=False, crafting=False)
-        self._WOOD = Piece(self, "Wood", PieceType.TOKEN, 8, Suit.WILD, movable=False, crafting=False)
-        self._SAWMILL = Piece(self, "Sawmill", PieceType.BUILDING, 0, Suit.WILD, movable=False, crafting=False)
-        self._WORKSHOP = Piece(self, "Workshop", PieceType.BUILDING, 0, Suit.WILD, movable=False, crafting=True)
-        self._RECRUITER = Piece(self, "Recruiter", PieceType.BUILDING, 0, Suit.WILD, movable=False, crafting=False)
+        self._KEEP = Piece(self, "Keep", PieceType.TOKEN, 1, Suit.WILD, movable=False, crafting=False)
+        self._WOOD = Piece(self, "Wood", PieceType.TOKEN, 1, Suit.WILD, movable=False, crafting=False)
+        self._SAWMILL = Piece(self, "Sawmill", PieceType.BUILDING, 1, Suit.WILD, movable=False, crafting=False)
+        self._WORKSHOP = Piece(self, "Workshop", PieceType.BUILDING, 1, Suit.WILD, movable=False, crafting=True)
+        self._RECRUITER = Piece(self, "Recruiter", PieceType.BUILDING, 1, Suit.WILD, movable=False, crafting=False)
         supply: dict[Piece, int] = {
             # self._WOOD: 8,
             self._WARRIOR: 25,
@@ -33,10 +33,10 @@ class MechanicalMarquise(BotFaction):
             raise AttributeError("Game was not initialised!")
         return getattr(self.game.board, attribute)
     
-    def score(self, vp: int) -> None:
+    def score(self, vp: int, suppress: bool = False) -> None:
         if self.game is None:
             raise AttributeError("Game was not initialised!")
-        self.game.score_vp(self, vp)
+        self.game.score_vp(self, vp, suppress)
         
     def rules(self, u: int) -> bool:
         return self.clearings[u].ruler == self
@@ -82,7 +82,11 @@ class MechanicalMarquise(BotFaction):
         if noscore:
             return
         vp: int = 7-self.supply[building]
-        self.game.score_vp(self, vp)
+        if vp:
+            self.score(vp, suppress=True)
+            print(f', scoring {vp:d} VP.')
+        else:
+            print('.')
     
     def craft(self, card_pile: list[Card], card: Card, override: int = 1, suppress: bool = False) -> None:
         if self.game is None:
@@ -110,24 +114,24 @@ class MechanicalMarquise(BotFaction):
         while len(corner_choices) > 0:
             try:
                 u = corner_choices.pop()
-                print(u)
                 adjacent_choices = [v for v in self.game.board[u].adjlist if not self.game.board[v].homeland]
                 if len(adjacent_choices) < 2:
                     raise RuleBreach(f"Corner {u} has too few adjacent homelands available.")
                 homeland = [u] + sample(adjacent_choices, k=2)
                 buildings: list[Piece] = [self._SAWMILL, self._WORKSHOP, self._RECRUITER]
                 shuffle(buildings)
-                self.place(u=homeland[0], token=self._KEEP)
+                print(f"{str(self)} places their {str(self._KEEP)} in {str(self.clearings[u])}. ")
+                self.place(u=homeland[0], token=self._KEEP, suppress=True)
                 for h in homeland:
                     self.recruit(h, suppress=True)
                     self.build(h, buildings.pop(), noscore=True)
                     self.game.board[h].homeland = True
-                print(f"{self.name} set up in homeland clearings {homeland}.")
+                # print(f"{str(self)} set up in homeland clearings {homeland}.")
                 return
             except RuleBreach as e:
                 print(e)
-                print(f"{self.name} setup failed for corner {u:d}. Trying again...")
-        raise RuntimeError(f"Failed to find a valid setup for {self.name}.")
+                print(f"{str(self)} setup failed for corner {u:d}. Trying again...")
+        raise RuntimeError(f"Failed to find a valid setup for {str(self)}.")
     
     def birdsong(self):
         """Execute the birdsong phase."""
@@ -171,8 +175,9 @@ class MechanicalMarquise(BotFaction):
             failed_recruits += (4-i)
         if failed_recruits:
             print(f"{str(self)} scores {failed_recruits//2} VP for warriors that could not be recruited.")
-            self.score(failed_recruits//2)  
+            self.score(failed_recruits//2, suppress=True)  
         # MOVE
+        print(f"{str(self)} moves out of ruled {'' if self.order.suit == Suit.BIRD else str(self.order.suit)+' '}clearings.")
         warrior_count: int = 0
         warriors_to_move: int = 0
         for u in self.get_clearings(suit=self.order.suit):
@@ -192,6 +197,7 @@ class MechanicalMarquise(BotFaction):
                     (f for f in self.clearings[v].pieces.keys() if f != self),
                     None,
                 )
+                print(f"{str(self)} initiates a battle in each clearing moved into.")
                 if (
                     self.order.suit == Suit.BIRD
                     and first_enemy is not None
