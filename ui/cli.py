@@ -1,8 +1,12 @@
 from game.game import Game, GameOver
+from factions.faction import Faction, NullFaction
 from ui.renderer import Renderer
 from ui.styles import Style, Color
 from board.suit import Suit
+from typing import Callable
 
+
+_EXECUTION_CONTEXT: Callable[[str], str] = lambda x: x.replace('board','game.board').replace('game','self.game').replace('bot','self.bot')
 
 class CLI:
     CONTINUE_COMMANDS = [ "yes", "y", "continue", "c", "play", "p", "run", "r", "next"]
@@ -24,6 +28,8 @@ class CLI:
     def __init__(self, game: Game):
         self.game: Game = game
         self.size: int = len(game.board)
+        for i in range(4):
+            self.add_player(game, i)
         self.CLEARING_VIEWS: set[str] = {str(i) for i in range(1,self.size)}
         self.NAMED_CLEARINGS: dict[str, int] = {
             "hill": 1,
@@ -42,6 +48,14 @@ class CLI:
     
     def render(self):
         print(Renderer.render_game(self.game))
+    
+    def add_player(self, game: Game, number: int) -> None:
+        new_player: Faction = NullFaction()
+        try:
+            new_player = game.factions[number]
+        except IndexError:
+            pass
+        setattr(self, f"bot{number+1:d}", new_player)
 
     def main_loop(self):
         print(f"Setup complete. Press {Style.BOLD.style('<ENTER>')} to continue.\n")
@@ -51,7 +65,11 @@ class CLI:
                 self.game.play()
             elif command_sequence[0] in self.EXECUTION_COMMANDS:
                 try:
-                    exec(f"print({command_sequence[1:].replace('game','self.game')})")
+                    command_sequence = command_sequence[1:]
+                    EXECUTABLE: str = _EXECUTION_CONTEXT(command_sequence)
+                    exec(
+                        f"print({EXECUTABLE})"
+                    )
                     continue
                 except Exception as e:
                     print(f"{Color.ERROR.style(repr(e))}")

@@ -182,7 +182,6 @@ class Renderer:
     @classmethod
     def render_game(cls, game: Game) -> str:
         result: str = ""
-        header: str = cls.render_turn_phase(game)+"\n"
         result += cls.render_item_supply(game.items)+"\n"
         result += cls.render_map(game.board)+"\n"
         result += (f'{Style.DIM.value}Turn {game.turn_manager.turn_number}: '
