@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from board.suit import Suit
 from components.card import Card
 from components.items import Item
 from components.pieces import Piece
@@ -57,6 +58,17 @@ class Faction(ABC):
     
     def __setitem__(self, key: Piece, value: int) -> None:
         self.supply[key] = value 
+
+    def __hash__(self) -> int:
+        return id(self)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Faction):
+            return NotImplemented
+        try:
+            return object.__getattribute__(self, 'name') == object.__getattribute__(other, 'name')
+        except AttributeError:
+            return self is other
 
     def __repr__(self):
         return f"Faction(name={self.name!r}, supply={self.supply})"
@@ -119,3 +131,14 @@ class NullFaction(Faction):
     
     def evening(self):
         pass
+
+
+class BotFaction(Faction):
+    def __init__(self, name: str, supply: dict[Piece, int],  color: Color):
+        super().__init__(
+            name=name,
+            supply=supply,
+            color=color,
+            handsize=0
+        )
+        self.order: Card = Card("No Order", Suit.NONE)

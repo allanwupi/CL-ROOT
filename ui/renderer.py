@@ -7,7 +7,7 @@ from components.pieces import Piece
 from board.board import Board
 from board.clearing import Clearing
 from board.suit import Suit
-from factions.faction import Faction, TurnPhase
+from factions.faction import Faction, BotFaction, TurnPhase
 from ui.styles import *
 
 from typing import TYPE_CHECKING
@@ -114,6 +114,8 @@ class Renderer:
         if len(faction.hand) > 0:
             hand = hand[:-2]
         hand += ']'
+        if isinstance(faction, BotFaction): 
+            hand = f'{_PADDING}Order   : [{str(faction.order)}]'
         items: str = cls.render_item_supply(faction.items, label=True)
         faction_supply: str = cls.render_faction_supply(faction.supply, label=True)
         effects = f'{_PADDING}Crafted : ['

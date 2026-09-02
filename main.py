@@ -9,7 +9,7 @@ from factions.clockwork.marquise import MechanicalMarquise
 
 board: Board = Board(clearings=AUTUMN_MAP, ascii=AUTUMN_MAP_ASCII)
 deck: Deck = Deck(name="Base Deck", cards=BASE_DECK)
-game: Game = Game(board=board, deck=deck)
+game: Game = Game(board=board, deck=deck, pause_each_phase=True)
 
 bot1 = MechanicalMarquise(name='Marquise')
 bot2 = MechanicalMarquise(name='Esiuqram', color=Color.PINK)
@@ -27,6 +27,7 @@ def main():
         return()
     except GameOver as e:
         print(e)
+        cli.render()
 
 
 if __name__ == "__main__":

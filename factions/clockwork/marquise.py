@@ -1,16 +1,10 @@
 from factions.faction import *
 from game.action import Move, Build, Place, Battle, Recruit, Craft
 from components.pieces import PieceType
-from board.suit import Suit
 from board.location import Location
 
-class MechanicalMarquise(Faction):    
-    def __init__(
-        self,
-        name: str,
-        color: Color = Color.ORANGE,
-    ):
-        self.order: Card = Card("PLACEHOLDER", Suit.NONE)
+class MechanicalMarquise(BotFaction):    
+    def __init__(self, name: str, color: Color = Color.ORANGE):
         self._WARRIOR = Piece(self, "Warrior", PieceType.WARRIOR, 0, Suit.WILD, movable=True, crafting=False)
         self._KEEP = Piece(self, "Keep", PieceType.TOKEN, 0, Suit.WILD, movable=False, crafting=False)
         self._WOOD = Piece(self, "Wood", PieceType.TOKEN, 8, Suit.WILD, movable=False, crafting=False)
@@ -25,7 +19,7 @@ class MechanicalMarquise(Faction):
             self._WORKSHOP: 6,
             self._RECRUITER: 6
         }
-        super().__init__(name, supply, color, handsize=0)
+        super().__init__(name, supply, color)
     
     def __repr__(self):
         return f"MechanicalMarquise(name={self.name!r}, supply={self.supply}, color={self.color.name})"
@@ -47,57 +41,57 @@ class MechanicalMarquise(Faction):
     def rules(self, u: int) -> bool:
         return self.clearings[u].ruler == self
     
-    def battle(self, u: int, defender: Faction) -> None:
+    def battle(self, u: int, defender: Faction, suppress: bool = False) -> None:
         if self.game is None:
             raise AttributeError("Game was not initialised!")
         Battle(
             game=self.game, owner=self, clearing=u, piece=self._WARRIOR, defender=defender
-        ).execute()
+        ).execute(suppress=suppress)
     
-    def move(self, u: int, v: int, numpieces: int) -> None:
+    def move(self, u: int, v: int, numpieces: int, suppress: bool = False) -> None:
         if self.game is None:
             raise AttributeError("Game was not initialised!")
         Move(
             game=self.game, owner=self, clearing=u, destination=v, 
             piece=self._WARRIOR, numpieces=numpieces
-        ).execute()
+        ).execute(suppress=suppress)
     
-    def recruit(self, u: int, numpieces: int = 1) -> None:
+    def recruit(self, u: int, numpieces: int = 1, suppress: bool = False) -> None:
         if self.game is None:
             raise AttributeError("Game was not initialised!")
         Recruit(
             game=self.game, owner=self, clearing=u, piece=self._WARRIOR, numpieces=numpieces,
             at_piece=None
-        ).execute()
+        ).execute(suppress=suppress)
     
-    def place(self, u: int, token: Piece, numpieces: int = 1) -> None:
+    def place(self, u: int, token: Piece, numpieces: int = 1, suppress: bool = False) -> None:
         if self.game is None:
             raise AttributeError("Game was not initialised!")
         Place(
             game=self.game, owner=self, clearing=u, piece=token, numpieces=numpieces,
             at_piece=None
-        ).execute()
+        ).execute(suppress=suppress)
     
-    def build(self, u: int, building: Piece, noscore: bool = False) -> None:
+    def build(self, u: int, building: Piece, noscore: bool = False, suppress: bool = False) -> None:
         if self.game is None:
             raise AttributeError("Game was not initialised!")
         Build(
             game=self.game, owner=self, clearing=u, piece=building, at_piece=None
-        ).execute()
+        ).execute(suppress=suppress)
         # Score points according to the number of buildings left on the track
         if noscore:
             return
         vp: int = 7-self.supply[building]
         self.game.score_vp(self, vp)
     
-    def craft(self, card_pile: list[Card], card: Card, override: int = 1) -> None:
+    def craft(self, card_pile: list[Card], card: Card, override: int = 1, suppress: bool = False) -> None:
         if self.game is None:
             raise AttributeError("Game was not initialised!")
         Craft(
             game=self.game, owner=self, clearing=0, piece=self._WORKSHOP, numpieces=0,
             supplier=self.game.board.environment, card=card, card_pile=card_pile,
             crafting_pieces=[], crafting_clearings=[], override=override
-        ).execute()
+        ).execute(suppress=suppress)
 
     def setup(self, game: Game) -> None:
         self.game = game
@@ -107,7 +101,7 @@ class MechanicalMarquise(Faction):
         from random import shuffle, sample
         """Set up faction pieces following advanced setup rules."""
         for u in range(1, len(self.game)):
-            self.recruit(u)
+            self.recruit(u, suppress=True)
         corner_choices: list[int] = self.get_clearings(location=Location.CORNER, not_picked=True, return_indices=True)
         if not corner_choices:
             raise RuleBreach(f"No available corner homelands remain for setup.")
@@ -125,7 +119,7 @@ class MechanicalMarquise(Faction):
                 shuffle(buildings)
                 self.place(u=homeland[0], token=self._KEEP)
                 for h in homeland:
-                    self.recruit(h)
+                    self.recruit(h, suppress=True)
                     self.build(h, buildings.pop(), noscore=True)
                     self.game.board[h].homeland = True
                 print(f"{self.name} set up in homeland clearings {homeland}.")
@@ -148,10 +142,10 @@ class MechanicalMarquise(Faction):
     def daylight(self):
         """Execute the daylight phase."""
         # BATTLE
-        print(f"{self.name} initiates a battle in each {'' if self.order.suit == Suit.BIRD else str(self.order.suit)+' '}clearing.")  # Only 1 enemy for now
+        print(f"{str(self)} initiates a battle in each {'' if self.order.suit == Suit.BIRD else str(self.order.suit)+' '}clearing.")  # Only 1 enemy for now
         for (clearing, enemy) in self.get_battles(self, suit=self.order.suit):
             self.battle(clearing, enemy)
-        print(f"{self.name} recruits 4x {self._WARRIOR} among ruled ordered clearings.")
+        print(f"{str(self)} recruits 4x {self._WARRIOR} among ruled {'' if self.order.suit == Suit.BIRD else str(self.order.suit)+' '}clearings.")
         # RECRUIT
         recruit_clearings: list[int] = []
         if self.order.suit == Suit.BIRD:
@@ -176,13 +170,12 @@ class MechanicalMarquise(Faction):
         except IndexError:
             failed_recruits += (4-i)
         if failed_recruits:
-            print(f"{self.name} scores {failed_recruits//2} VP for warriors that could not be recruited.")
+            print(f"{str(self)} scores {failed_recruits//2} VP for warriors that could not be recruited.")
             self.score(failed_recruits//2)  
         # MOVE
         warrior_count: int = 0
         warriors_to_move: int = 0
         for u in self.get_clearings(suit=self.order.suit):
-            print('move',u)
             possible_destinations: list[int] = self.get_adjacent_clearings(u)
             possible_destinations.sort(key=lambda c: (self.count_enemies(c, self), -c), reverse=True)
             v: int = possible_destinations[0]
@@ -205,16 +198,12 @@ class MechanicalMarquise(Faction):
                     and self.clearings[v].faction_presence(first_enemy).numpieces > 0
                 ):
                     self.battle(v, first_enemy)
-        
+        # BUILD
         build_clearings: list[int] = sorted(
             self.get_clearings(ruler=self, suit=self.order.suit),
             key=lambda c: (self.clearings[c].free, self.count_pieces(c, piece=self._WARRIOR), -c),
             reverse=True
         )
-        print(build_clearings)
-        for c in build_clearings:
-            print(c, self.rules(c))
-        
         building: Piece = self._SAWMILL
         match self.order.suit:
             case Suit.FOX:
@@ -237,3 +226,5 @@ class MechanicalMarquise(Faction):
         while len(self.revealed) > 0:
             self.discard(self.revealed, self.revealed[-1])
         print(f"{str(self)} discards {self.order}.")
+        self.order: Card = Card("No Order", Suit.NONE)
+        print(f"{str(self)} ends their turn with {self.vp:d} VP.")

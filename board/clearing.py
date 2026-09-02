@@ -30,7 +30,6 @@ class Clearing:
         self.adjlist: list[int] = adjlist
         self.pieces: dict[Faction, dict[Piece, int]] = dict()
         self.location: Location = Location.from_number(self.number)
-        print(self.number, self.location)
         self.homeland: bool = False # Chosen as homeland
     
     # Read-only, dynamically calculated fields for rule and presence
