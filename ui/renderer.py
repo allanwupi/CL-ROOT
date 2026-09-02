@@ -66,8 +66,8 @@ class Renderer:
             return f"{_PADDING}{str(act.owner)} recruits {act.numpieces:d}x {str(act.piece)} in {str(act._clearing)}. "
         if isinstance(act, Move):
             return (
-                f"{act.owner.color} moves {act.numpieces:d}x {str(act.piece)}"
-                f"from {str(act.clearing)} to {str(act.destination)}. "
+                f"{str(act.owner)} moves {act.numpieces:d}x {str(act.piece)}"
+                f" from {str(act._clearing)} to {str(act._destination)}. "
             )
         if isinstance(act, Battle):
             return f"{str(act.owner)} battles {str(act.defender)} in {str(act._clearing)}. Dice rolls: {act.rolls}. "

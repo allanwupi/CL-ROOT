@@ -58,6 +58,14 @@ class Faction(ABC):
     def __setitem__(self, key: Piece, value: int) -> None:
         self.supply[key] = value 
 
+    def __hash__(self) -> int:
+        return hash(self.name)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Faction):
+            return NotImplemented
+        return self.name == other.name
+
     def __repr__(self):
         return f"Faction(name={self.name!r}, supply={self.supply})"
     

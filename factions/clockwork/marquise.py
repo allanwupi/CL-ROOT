@@ -195,9 +195,16 @@ class MechanicalMarquise(Faction):
                     warriors_to_move = max(0, warrior_count - rule_threshold)
             if warriors_to_move > 0 and (self.rules(u) or self.rules(v)):
                 self.move(u, v, warriors_to_move)
-                first_enemy: list[Faction] = [f for f in self.clearings[v].pieces.keys() if f != self]
-                if self.order.suit == Suit.BIRD and self.clearings[v].faction_presence(first_enemy).numpieces > 0:
-                    self.battle(v, first_enemy[0])
+                first_enemy: Faction | None = next(
+                    (f for f in self.clearings[v].pieces.keys() if f != self),
+                    None,
+                )
+                if (
+                    self.order.suit == Suit.BIRD
+                    and first_enemy is not None
+                    and self.clearings[v].faction_presence(first_enemy).numpieces > 0
+                ):
+                    self.battle(v, first_enemy)
         
         build_clearings: list[int] = sorted(
             self.get_clearings(ruler=self, suit=self.order.suit),
