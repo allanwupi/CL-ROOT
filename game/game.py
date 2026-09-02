@@ -1,5 +1,4 @@
 from game.turn_manager import TurnManager
-from rules.rule_engine import RULE
 from board.board import Board
 from board.clearing import Clearing
 from factions.faction import Faction, TurnPhase
@@ -24,15 +23,13 @@ class Game:
         COINS: 2
     }
 
-    def __init__(self, board: Board, deck: Deck):
+    def __init__(self, board: Board, deck: Deck, pause_each_phase: bool = False):
         self.board = board
         self.deck = deck
         self.board.environment.items = self.ITEM_SUPPLY
+        self.pause_each_phase = pause_each_phase
         self.factions: list[Faction] = []
         self.turn_manager: TurnManager = TurnManager()
-        
-    def __len__(self) -> int:
-        return len(self.board)
     
     @property
     def items(self) -> dict[Item, int]:
@@ -47,28 +44,44 @@ class Game:
         faction.setup(self)
         self.turn_manager.player_count += 1
         
-    def score_vp(self, faction: Faction, numpoints: int) -> None:
+    def score_vp(self, faction: Faction, numpoints: int, suppress: bool = False) -> None:
         if faction not in self.factions:
             print(f"{str(faction)} is not a player.")
             return
-        if abs(numpoints > 0):
-            print(f"{str(faction)} {'scores' if numpoints > 0 else 'loses'} {numpoints:d} VP.")
+        if abs(numpoints > 0) and not suppress:
+            from ui.renderer import _PADDING
+            print(f"{_PADDING}{str(faction)} {'scores' if numpoints > 0 else 'loses'} {numpoints:d} VP.")
         faction.vp += numpoints
         if faction.vp >= 30:
             raise GameOver(f"{str(faction)} victory!")
         
     def play(self) -> None:
-        faction: Faction = self.factions[self.turn_manager.next()]
+        from ui.renderer import Renderer
+        player: int = self.turn_manager.next()
+        if player == 0:
+            self.turn_manager.turn_number += 1
+        faction: Faction = self.factions[player]
         self.turn_manager.current_phase = TurnPhase.BIRDSONG
+        print(Renderer.render_turn_phase(self))
         faction.birdsong()
+        if self.pause_each_phase: input()
         self.turn_manager.current_phase = TurnPhase.DAYLIGHT
+        print(Renderer.render_turn_phase(self))
         faction.daylight()
+        if self.pause_each_phase: input()
         self.turn_manager.current_phase = TurnPhase.EVENING
+        print(Renderer.render_turn_phase(self))
         faction.evening()
-        self.turn_manager.turn_number += 1
     
     def __getitem__(self, key: int) -> Clearing:
         return self.board.clearings[key]
+    
+    def __len__(self) -> int:
+        return self.size
+    
+    def __getattr__(self, attribute):
+        # Fetch missing attributes from the encapsulated board object
+        return getattr(self.board, attribute)
     
     def __str__(self) -> str:
         from ui.renderer import Renderer

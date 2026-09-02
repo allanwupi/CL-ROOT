@@ -20,7 +20,8 @@ class TurnPhase(Enum):
     DAYLIGHT = 'Daylight'
     EVENING = 'Evening'
     
-    def __str__(self):
+    @property
+    def color(self) -> Color:
         color: Color = Color.NONE
         match (self):
             case TurnPhase.BIRDSONG:
@@ -29,7 +30,11 @@ class TurnPhase(Enum):
                 color = Color.DAYLIGHT
             case TurnPhase.EVENING:
                 color = Color.EVENING
-        return color.style(self.value)
+        return color
+    
+    def __str__(self):
+        color: Color = self.color
+        return color.style('~'+self.value+'~')
 
 
 class Faction(ABC):
@@ -72,10 +77,10 @@ class Faction(ABC):
         if self.game is None:
             raise AttributeError("Game was not initialised")
         pile.remove(card)
-        self.game.deck.discard([card])
+        self.game.deck.discard(pile, card)
 
     @abstractmethod
-    def setup(self, game: Game, homelands: list[Clearing] = list()):
+    def setup(self, game: Game):
         """Set up faction pieces following advanced setup rules."""
         pass
     
@@ -103,7 +108,7 @@ class NullFaction(Faction):
         super().__init__(
             name=name,
             supply={},
-            color=Color.NONE,
+            color=Color.RUIN,
             handsize=999
         )
     

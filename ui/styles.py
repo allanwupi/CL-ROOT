@@ -5,6 +5,7 @@ class Style(Enum):
     RESET = "\x1b[0m"
     DIM = "\x1b[2m"
     BOLD = "\x1b[1m"
+    NORMAL = "\x1b[22m"
     
     def __str__(self):
         return f"{self.value}{self.name}\x1b[0m"
@@ -44,6 +45,7 @@ class Color(Enum):
     SWORD = "\x1b[38;5;7m"
     TEA = "\x1b[38;5;111m"
     COINS = "\x1b[38;5;222m"
+    RUIN = "\x1b[38;5;243m"
     
     def __str__(self):
         return f"{self.value}{self.name}\x1b[0m"

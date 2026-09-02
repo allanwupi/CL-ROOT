@@ -1,5 +1,7 @@
 from board.clearing import Clearing
-from factions.faction import NullFaction
+from board.suit import Suit
+from board.location import Location
+from factions.faction import Faction, NullFaction
 from components.data import _ENVIRONMENT
 
 class Board():
@@ -8,9 +10,67 @@ class Board():
         self.size: int = len(clearings)
         self.ascii: str = ascii
         self.environment: NullFaction = _ENVIRONMENT
-        
-    def slots(self):
-        """Returns a dict with the building strings of clearing slots"""
+    
+    # Helpful methods for finding clearings
+    def get_clearing_index(self, clearing: Clearing | int) -> int:
+        return (
+            self.clearings.index(clearing)
+            if isinstance(clearing, Clearing)
+            else clearing
+        )
+    
+    def get_obj_from_indices(self, clearings: list[int]) -> list[Clearing]:
+        return [self.clearings[number] for number in clearings]
+    
+    def filter(
+        self, ruler: Faction | None = None, faction: Faction | None = None,
+        suit: Suit = Suit.WILD, location: Location | None = None,
+        not_picked: bool = False, return_indices: bool = True
+    ) -> list:
+        # Work with indices then convert back to clearings as final step if necessary
+        filtered_by_suit: list[int] = [i for i in range(self.size) if self.clearings[i].suit in suit]
+        print('1', filtered_by_suit)
+        filtered_by_presence: list[int] = (
+            [i for i in filtered_by_suit if self.clearings[i].faction_presence(faction).numpieces > 0]
+            if faction is not None
+            else filtered_by_suit
+        )
+        print('2', filtered_by_presence)
+        filtered_by_ruler: list[int] = (
+            [i for i in filtered_by_presence if self.clearings[i].ruler is self.clearings[i].ruler == ruler]
+            if faction is not None
+            else filtered_by_presence
+        )
+        print('3', filtered_by_ruler)
+        filtered_by_location: list[int] = (
+            [i for i in filtered_by_ruler if self.clearings[i].location == location]
+            if location is not None
+            else filtered_by_ruler
+        )
+        print('4', filtered_by_location)
+        final: list[int] = (
+            [i for i in filtered_by_location if not self.clearings[i].homeland]
+            if not_picked
+            else filtered_by_location
+        )
+        print('5', final)
+        if return_indices:
+            return final
+        else:
+            return [self.clearings[i] for i in final]
+    
+    def check_adjacency(self, clearing: Clearing | int, destination: Clearing | int) -> bool:
+        origin_number: int = self.get_clearing_index(clearing)
+        destination_number: int = self.get_clearing_index(destination)
+        return destination_number in self.clearings[origin_number].adjlist
+    
+    def get_adjacent_clearings(
+        self, clearing: Clearing | int,
+        return_indices: bool = True
+    ) -> list:
+        number: int = self.get_clearing_index(clearing)
+        adjacent: list[int] = [i for i in self.clearings[number].adjlist]
+        return adjacent if return_indices else self.get_obj_from_indices(adjacent)
     
     def __len__(self) -> int:
         return self.size

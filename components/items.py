@@ -42,7 +42,8 @@ class Item(Piece):
             self.itemtype.value
         )
     
-    def __str__(self):
+    @property
+    def color(self):
         color: Color = Color.NONE
         match (self.itemtype):
             case ItemType.BAG:
@@ -59,6 +60,14 @@ class Item(Piece):
                 color = Color.TEA
             case ItemType.COINS:
                 color = Color.COINS
+        return color
+    
+    @property
+    def in_stock(self) -> bool:
+        return self.owner.items[self] > 0
+    
+    def __str__(self):
+        color: Color = self.color
         return color.style(self.name)
 
 

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from game.action import Action, Battle, Build, Craft, Move, Place, Remove
+from game.action import Action, Battle, Recruit, Build, Craft, Move, Place, Remove
 from game.turn_manager import TurnManager
 from components.items import Item, Ruin
 from components.pieces import Piece
 from board.board import Board
 from board.clearing import Clearing
+from board.suit import Suit
 from factions.faction import Faction, TurnPhase
 from ui.styles import *
 
@@ -15,30 +16,36 @@ if TYPE_CHECKING:
     from game.game import Game
 
 
-class Renderer:
-    # Terminal options
-    PADDING: str = ' '*2
-    TERMINAL_WIDTH: int = 80
-    
+# Terminal options
+_PADDING: str = ' '*2
+_TERMWIDTH: int = 80
+
+
+class Renderer:    
     # Turn annoucements
     LEFT_DECORATOR: str = '-'*5 + '='*5 + '{'
     RIGHT_DECORATOR: str = '}' + '='*5 + '-'*5
 
     # Building slots
     FREE_SLOT: str = ' '
-    BLOCKED_SLOT: str = '#'
-    SLOT_DECORATOR: tuple[str, str] = ('[', ']')
+    BLOCKED_SLOT: str = f"{Color.RUIN.style('#')}"
     
     @classmethod
-    def render_slot(cls, building: Piece | None) -> str:
-        slot: str = ''
+    def render_slot(cls, building: Piece | None, suit: Suit) -> str:
         if building is None:
-            slot = cls.FREE_SLOT
+            return (
+                f"{suit.color.style('[')}"
+                f"{cls.FREE_SLOT}"
+                f"{suit.color.style(']')}"
+            )
         elif isinstance(building, Ruin):
-            slot = cls.BLOCKED_SLOT
+            return  (
+                f"{suit.color.style('[')}"
+                f"{cls.BLOCKED_SLOT}"
+                f"{suit.color.style(']')}"
+            )
         else:
-            slot = str(building).upper()[0]
-        return cls.SLOT_DECORATOR[0]+slot+cls.SLOT_DECORATOR[1]
+            return f"{building.owner.color.style('['+building.name[0]+']')}"
     
     @classmethod
     def render_turn_phase(cls, game: Game) -> str:
@@ -48,35 +55,40 @@ class Renderer:
         phase: TurnPhase = turn_manager.current_phase
         result: str = ""
         if current_player == 0 and phase == TurnPhase.BIRDSONG:
-            result += (
-                f"{cls.LEFT_DECORATOR}Turn {turn}{cls.RIGHT_DECORATOR}"
-                f"{'-'*(cls.TERMINAL_WIDTH-len(result))}\n"
-            )
-        result += f"{Style.BOLD.style('~'+str(phase)+'~')}"
+            result += f"{cls.LEFT_DECORATOR}Turn {turn}{cls.RIGHT_DECORATOR}"
+            result += f"{'-'*(_TERMWIDTH-len(result))}\n"
+        result += f"{Style.BOLD.style(str(phase))}"
         return result
     
     @classmethod
     def render_action(cls, act: Action) -> str:
-        if isinstance(act, Battle):
-            return f"{cls.PADDING}{str(act.owner)} battles {str(act.defender)} in {str(act.clearing)}"
-        if isinstance(act, Place):
-            return f"{str(act.owner)} places {act.numpieces:d} {str(act.piece)} in {str(act.clearing)}"
-        if isinstance(act, Remove):
-            return f"{str(act.owner)} removes {str(act.numpieces)} in {str(act.clearing)}"
+        if isinstance(act, Recruit):
+            return f"{str(act.owner)} recruits {act.numpieces:d}x {str(act.piece)} in {str(act.clearing)}. "
         if isinstance(act, Move):
             return (
                 f"{act.owner.color} moves {act.numpieces:d}x {str(act.piece)}"
-                f"from {str(act.clearing)} to {str(act.destination)}"
+                f"from {str(act.clearing)} to {str(act.destination)}. "
             )
+        if isinstance(act, Battle):
+            return f"{_PADDING}{str(act.owner)} battles {str(act.defender)} in {str(act.clearing)}. Dice rolls: {act.rolls}. "
         if isinstance(act, Build):
-            return f"{str(act.owner)} builds {str(act.piece)} in {str(act.clearing)}"
-        else:
-            return Color.WARNING.style(f"Action {repr(act)} cannot be rendered.")
+            if act.numpieces > 1:
+                return f"{str(act.owner)} builds {act.numpieces:d}x {str(act.piece)} in {str(act.clearing)}. "
+            return f"{str(act.owner)} builds {str(act.piece)} in {str(act.clearing)}. "
+        if isinstance(act, Place):
+            return f"{_PADDING}{str(act.owner)} places {act.numpieces:d}x {str(act.piece)} in {str(act.clearing)}. "
+        if isinstance(act, Remove):
+            return f"{_PADDING}{str(act.owner)} removes {str(act.numpieces)} in {str(act.clearing)}. "
+        if isinstance(act, Craft):
+            if act.card.item is not None:
+                return f"{str(act.owner)} crafts {str(act.card.item)}. "
+            return f"{str(act.owner)} crafts {str(act.card)}. "
+        return Color.WARNING.style(f"Action {repr(act)} was not rendered.")
 
     @classmethod
     def render_item_supply(cls, supply: dict[Item, int], label: bool = False) -> str:
         result: str = "["
-        if label: result = f"{cls.PADDING}Items   : "+result
+        if label: result = f"{_PADDING}Items   : "+result
         for key, count in supply.items():
             result += f'{count}x {str(key)}, '
         if len(supply) > 0:
@@ -86,7 +98,7 @@ class Renderer:
     @classmethod
     def render_faction_supply(cls, supply: dict[Piece, int], label: bool = False) -> str:
         result: str = ""
-        if label: result = f'{cls.PADDING:s}Supply  : '+result
+        if label: result = f'{_PADDING:s}Supply  : '+result
         for piece, count in supply.items():
             if count > 0:
                 result += f'{count}x {str(piece)}, '
@@ -96,7 +108,7 @@ class Renderer:
     
     @classmethod
     def render_faction_board(cls, faction: Faction) -> str:
-        hand: str = f'{cls.PADDING}Hand    : ['
+        hand: str = f'{_PADDING}Hand    : ['
         for card in set(faction.hand):
             hand += f'{str(card)}, '
         if len(faction.hand) > 0:
@@ -104,14 +116,14 @@ class Renderer:
         hand += ']'
         items: str = cls.render_item_supply(faction.items, label=True)
         faction_supply: str = cls.render_faction_supply(faction.supply, label=True)
-        effects = f'{cls.PADDING}Crafted : ['
+        effects = f'{_PADDING}Crafted : ['
         for crafted_improvement in faction.effects:
             effects += f'{str(crafted_improvement)}, '
         if len(faction.effects) > 0:
             effects = effects[:-2]
         effects += ']'
         header: str = f"{cls.LEFT_DECORATOR}{faction.name} ({faction.vp}/30 VP){cls.RIGHT_DECORATOR}"
-        header = faction.color.style(header + '-'*(cls.TERMINAL_WIDTH-len(header)))
+        header = faction.color.style(header + '-'*(_TERMWIDTH-len(header)))
         return '\n'.join((header, hand, effects, items, faction_supply))+'\n'
 
     @staticmethod
@@ -125,7 +137,7 @@ class Renderer:
             .replace('N', Style.RESET.value)
         )
         slot_dict: dict[str, str] = {
-            f"{clearing.name.lower()}_{i+1:d}": Renderer.render_slot(clearing.slots[i])
+            f"{clearing.name.lower()}_{i+1:d}": Renderer.render_slot(clearing.slots[i], clearing.suit)
             for clearing in board.clearings for i in range(0, len(clearing.slots)) 
         }
         return colored_ascii.format(**slot_dict)
@@ -138,7 +150,7 @@ class Renderer:
             _clearing: Clearing = clearing
         buildings: str = ""
         for slot in _clearing.slots:
-            buildings += cls.render_slot(slot)
+            buildings += cls.render_slot(slot, _clearing.suit)
         clearing_ruler: Faction | None = _clearing.ruler
         ruler: Faction = (
             clearing_ruler
@@ -155,14 +167,14 @@ class Renderer:
             faction: Faction = present.faction
             if present.numpieces > 0:
                 faction_presence += (
-                    f"{cls.PADDING}{str(faction)} : "
-                    f"{cls.render_faction_board(faction)}\n"
+                    f"{_PADDING}{faction.color.style(faction.name)} : "
+                    f"{cls.render_faction_supply(faction.supply)}\n"
                 )
-            if len(faction_presence) > 2:
-                faction_presence = faction_presence[:-2]
+        if len(faction_presence) > 0:
+            faction_presence = faction_presence[:-1]
         result: str = (
             f"{_clearing.suit.color.value}{_clearing.number} {_clearing.name} {buildings}{Style.RESET.value}"
-            f" ruled by {str(ruler)} (x{ruler_presence:d}) -> {_clearing.adjlist}\n"
+            f" ruled by {ruler.color.style(ruler.name)} (x{ruler_presence:d}) -> {_clearing.adjlist}\n"
             f"{faction_presence}"
         )
         return result

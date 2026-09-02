@@ -29,7 +29,8 @@ class Clearing:
         self.adjlist: list[int] = adjlist
         self.pieces: dict[Faction, dict[Piece, int]] = dict()
         self.location: Location = Location.from_number(self.number)
-        self.chosen: bool = False # Chosen as homeland
+        print(self.number, self.location)
+        self.homeland: bool = False # Chosen as homeland
     
     # Read-only, dynamically calculated fields for rule and presence
     @property
@@ -54,6 +55,9 @@ class Clearing:
             )
         return(FactionPresence(key, numpieces, rule))
     
+    def has_piece(self, piece: Piece | None) -> bool:
+        return (piece is None) or self.pieces[piece.owner][piece] > 0
+    
     @property
     def ruler(self) -> Faction | None:
         factions_by_rule: list[FactionPresence] = sorted(
@@ -69,6 +73,14 @@ class Clearing:
     @property
     def free(self) -> bool:
         return None in self.slots
+    
+    def build(self, building: Piece) -> None:
+        first_free: int = self.slots.index(None)
+        self.slots[first_free] = building
+        
+    def destroy(self, building: Piece) -> None:
+        first_building: int = self.slots.index(building)
+        self.slots[first_building] = None
     
     def __getitem__(self, key: Faction) -> dict[Piece, int]:
         return self.pieces[key]

@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 from board.clearing import Clearing
 from board.suit import Suit
 from components.card import Card
-from components.pieces import Piece
-from factions.faction import Faction
+from components.pieces import Piece, PieceType
+from factions.faction import Faction, NullFaction
 
 if TYPE_CHECKING:
     from game.game import Game
@@ -30,7 +30,7 @@ class Action(ABC):
         )
     
     @abstractmethod
-    def execute(self, game: Game, suppress: bool = False) -> None:
+    def execute(self, suppress: bool = False) -> None:
         pass
 
 
@@ -42,14 +42,15 @@ class Place(Action):
     numpieces: int
     at_piece: Piece | None
     suit: Suit = Suit.WILD
-    ignore_rule: bool = True
+    ignores_rule: bool = True
     forced: bool = False
     
-    def execute(self, game: Game, suppress: bool = False) -> None:
-        from rules.rule_engine import RULE
+    def execute(self, suppress: bool = False) -> None:
+        from rules.rule_engine import RuleEngine
         from ui.renderer import Renderer
 
-        RULE.illegalplace(self)
+        RuleEngine.illegalplace(self)
+        # Take from faction supply, place onto board
         piece_owner: Faction = self.piece.owner
         piece_owner.supply[self.piece] -= self.numpieces
         self._clearing[piece_owner][self.piece] += self.numpieces
@@ -64,26 +65,25 @@ class Remove(Action):
     numpieces: int
     forced: bool = False
     
-    def execute(self, game: Game, suppress: bool = False) -> None:
-        from rules.rule_engine import RULE
+    def execute(self, suppress: bool = False) -> None:
+        from rules.rule_engine import RuleEngine
         from ui.renderer import Renderer
 
-        RULE.illegalremove(self)
+        RuleEngine.illegalremove(self)
+        # Take from board, return to faction supply. Score VP if remover is not owner of piece
         piece_owner: Faction = self.piece.owner
         self._clearing[piece_owner][self.piece] -= self.numpieces
         piece_owner.supply[self.piece] += self.numpieces
+        if self.piece.piecetype == PieceType.BUILDING:
+            self._clearing.destroy(self.piece)
         vp: int = (
             self.piece.points * self.numpieces
             if self.owner != piece_owner
             else 0
         )
-        if not suppress:
-            print(Renderer.render_action(self),end='')
-            if vp:
-                print(f", scoring {vp:d} VP.")
-                game.score_vp(self.owner, vp)
-            else:
-                print()
+        if not suppress: print(Renderer.render_action(self))
+        if vp:
+            self.game.score_vp(self.owner, vp, suppress)
 
 
 @dataclass(kw_only=True)
@@ -94,7 +94,7 @@ class Move(Action):
     numpieces: int
     destination: int
     suit: Suit = Suit.WILD
-    ignore_rule: bool = False
+    ignores_rule: bool = False
     forced: bool = False
     _destination: Clearing = field(init=False)
     
@@ -104,13 +104,12 @@ class Move(Action):
             self.game[self.destination]
         )
 
-    # A move is a compound action
-    # Pieces are (1) removed from clearing; (2) placed in destination
-    def execute(self, game: Game, suppress: bool = False) -> None:
-        from rules.rule_engine import RULE
+    # A move is a compound action: pieces are (1) removed from clearing, (2) placed in destination
+    def execute(self, suppress: bool = False) -> None:
+        from rules.rule_engine import RuleEngine
         from ui.renderer import Renderer
 
-        RULE.illegalmove(self)
+        RuleEngine.illegalmove(self)
         self._clearing[self.owner][self.piece] -= self.numpieces
         self._destination[self.owner][self.piece] += self.numpieces
         if not suppress: print(Renderer.render_action(self))
@@ -123,17 +122,21 @@ class Build(Place):
     numpieces: int = 1
     clearing: int
     suit: Suit = Suit.WILD
-    ignore_rule: bool = True
+    ignores_rule: bool = False
     forced: bool = False
     
-    # Build action is a specific Place action requiring rule and a free building slot
-    def execute(self, game: Game, suppress: bool = False) -> None:
-        from rules.rule_engine import RULE
+    # Build action is a specialised Place action requiring rule and a free building slot
+    def execute(self, suppress: bool = False) -> None:
+        from rules.rule_engine import RuleEngine
         from ui.renderer import Renderer
 
-        RULE.illegalplace(self)
-        # TODO
-        pass
+        RuleEngine.illegalplace(self)
+        # Take from faction supply, place onto board
+        piece_owner: Faction = self.piece.owner
+        piece_owner.supply[self.piece] -= self.numpieces
+        self._clearing[piece_owner][self.piece] += self.numpieces
+        self._clearing.build(self.piece)
+        # Note that building does not score by default, this responsibility lies with the faction
         if not suppress: print(Renderer.render_action(self))
 
 
@@ -145,17 +148,19 @@ class Recruit(Place):
     numpieces: int
     at_piece: Piece | None
     suit: Suit = Suit.WILD
-    ignore_rule: bool = True
+    ignores_rule: bool = True
     forced: bool = False
     
     # Recruit action is a Place action at a specified recruiting piece
-    def execute(self, game: Game, suppress: bool = False) -> None:
-        from rules.rule_engine import RULE
+    def execute(self, suppress: bool = False) -> None:
+        from rules.rule_engine import RuleEngine
         from ui.renderer import Renderer
 
-        RULE.illegalrecruit(self)
-        # TODO
-        pass
+        RuleEngine.illegalrecruit(self)
+        # Same as Place
+        piece_owner: Faction = self.piece.owner
+        piece_owner.supply[self.piece] -= self.numpieces
+        self._clearing[piece_owner][self.piece] += self.numpieces
         if not suppress: print(Renderer.render_action(self))
 
 
@@ -168,37 +173,65 @@ class Battle(Action):
     numpieces: int = field(init=False)
     suit: Suit = Suit.WILD
     forced: bool = False
+    rolls: tuple[int, int] = field(init=False)
     
     def __post_init__(self):
+        from random import randint
         object.__setattr__(
             self, 'numpieces',
             self._clearing[self.piece.owner][self.piece]
         )
+        object.__setattr__(
+            self, 'rolls',
+            (randint(0, 3), randint(0, 3))
+        )
     
     # A battle is a complex action which involves removing pieces
-    def execute(self, game: Game, suppress: bool = False) -> None:
-        from rules.rule_engine import RULE
+    def execute(self, suppress: bool = False) -> None:
+        from rules.rule_engine import RuleEngine
         from ui.renderer import Renderer
+        from rules.battle_resolver import BattleResolver
 
-        RULE.illegalbattle(self)        
-        # TODO
-        pass
+        RuleEngine.illegalbattle(self)
         if not suppress: print(Renderer.render_action(self))
+        # Responsibility of dealing battle damage is delegated to BattleResolver 
+        BattleResolver(game=self.game, battle=self).resolve()        
 
 
 @dataclass(kw_only=True)
 class Craft(Action):
-    initiator: Faction
+    owner: Faction
+    supplier: NullFaction
     card: Card
+    card_pile: list[Card]
+    piece: Piece # Not used
+    numpieces: int # Not used
     crafting_pieces: list[Piece]
     crafting_clearings: list[Clearing]
+    override: int = -1
     forced: bool = False
+    ignores_cost: bool = False
     
-    def execute(self, game: Game, suppress: bool = False) -> None:
-        from rules.rule_engine import RULE
+    def execute(self, suppress: bool = False) -> None:
+        from rules.rule_engine import RuleEngine
         from ui.renderer import Renderer
         
-        RULE.illegalcraft(self)
-        # TODO
-        pass
+        RuleEngine.illegalcraft(self)
+        if not self.ignores_cost:
+            from rules.rule_engine import RuleBreach
+            from rules.craft_resolver import CraftResolver
+            if not CraftResolver(game=self.game, craft=self).resolve():
+                raise RuleBreach("Failed to select crafting pieces.")
+        if self.card.item is not None:
+            vp: int = (
+                self.override
+                if self.override >= 0
+                else self.card.item.points
+            )
+            self.game.score_vp(self.owner, vp)
+            self.owner.items[self.card.item] = self.owner.items.get(self.card.item, 0) + 1
+            self.supplier.items[self.card.item] -= 1
+        if self.card.persistent:
+            self.owner.effects.add(self.card)
+        self.owner.discard(self.card_pile, self.card)
         if not suppress: print(Renderer.render_action(self))
