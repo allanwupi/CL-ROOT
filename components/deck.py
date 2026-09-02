@@ -16,8 +16,10 @@ class Deck:
     
     def draw(self, numcards: int = 1) -> list[Card]:
         drawn: list[Card] = []
-        for i in range(numcards):
+        for _ in range(numcards):
             if len(self.draw_pile) == 0:
+                if len(self.discard_pile) == 0:
+                    raise RuntimeError("Cannot draw: both deck piles are empty.")
                 print(f"The discard pile was reshuffled to form a new deck.")
                 self.reshuffle()
             drawn.append(self.draw_pile.pop())
@@ -32,5 +34,5 @@ class Deck:
     
     def reshuffle(self) -> None:
         self.draw_pile.extend(self.discard_pile)
-        self.draw_pile = []
+        self.discard_pile.clear()
         shuffle(self.draw_pile)

@@ -30,6 +30,7 @@ class Game:
         self.pause_each_phase = pause_each_phase
         self.factions: list[Faction] = []
         self.turn_manager: TurnManager = TurnManager()
+        self.vp_history: list[list] = []
     
     @property
     def items(self) -> dict[Item, int]:
@@ -42,6 +43,7 @@ class Game:
             clearing.pieces[faction].update(empty_supply)
         self.factions.append(faction)
         faction.setup(self)
+        self.vp_history.append([])
         self.turn_manager.player_count += 1
         
     def score_vp(self, faction: Faction, numpoints: int, suppress: bool = False) -> None:
@@ -54,6 +56,7 @@ class Game:
             print(f"{_PADDING}{'+' if numpoints > 0 else '-'}{numpoints:d} VP")
         faction.vp += numpoints
         if faction.vp >= 30:
+            self.vp_history[self.turn_manager.current_player].append(faction.vp)
             raise GameOver(f"{str(faction)} victory!")
         
     def play(self) -> None:
@@ -73,6 +76,7 @@ class Game:
         self.turn_manager.current_phase = TurnPhase.EVENING
         print(Renderer.render_turn_phase(self))
         faction.evening()
+        self.vp_history[player].append(faction.vp)
         print()
     
     def __getitem__(self, key: int) -> Clearing:
