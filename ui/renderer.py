@@ -97,6 +97,7 @@ class Renderer:
         if cumulative > 0:
             result = result[:-2]
         else:
+            if label: return result+']'
             return f"{Style.ITALIC.value}{Style.DIM.style('[no items left in supply]')}"
         return result+']'
     
