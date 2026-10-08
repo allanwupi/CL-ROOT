@@ -2,6 +2,8 @@ from factions.faction import *
 from game.action import Move, Build, Place, Battle, Recruit, Craft
 from components.pieces import PieceType
 from board.location import Location
+from game.game import Game
+
 
 class MechanicalMarquise(BotFaction):    
     def __init__(self, name: str, color: Color = Color.ORANGE):
