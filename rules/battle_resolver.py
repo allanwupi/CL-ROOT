@@ -35,7 +35,7 @@ class BattleResolver:
                 for piece in self.attacker.supply.keys()
                 if self.clearing[self.attacker][piece] > 0
             ],
-            key=lambda x: (len(x[0]), int(x[0].piecetype))
+            key=lambda x: (x[0].points, int(x[0].piecetype))
         )
         targets_by_priority: list[tuple[Piece, int]] = sorted(
             [
@@ -43,7 +43,7 @@ class BattleResolver:
                 for target in self.defender.supply.keys()
                 if self.clearing[self.defender][target] > 0
             ],
-            key=lambda x: (len(x[0]), int(x[0].piecetype))
+            key=lambda x: (x[0].points, int(x[0].piecetype))
         )
         numattackers: int = sum(
             piece_count[1]
